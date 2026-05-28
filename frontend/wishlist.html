@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>LaptopPredict — Wishlist</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+<script src="_shared.js"></script>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="/" style="text-decoration:none;"><div class="logo">💻 Laptop<span>Predict</span></div></a>
+  <ul class="nav-links">
+    <li><a href="/app"><i class="fa fa-search"></i> Search</a></li>
+    <li><a href="/build"><i class="fa fa-sliders-h"></i> Build</a></li>
+    <li><a href="/history-page"><i class="fa fa-history"></i> History</a></li>
+    <li><a href="/wishlist-page" style="color:var(--accent)"><i class="fa fa-heart"></i> Wishlist</a></li>
+    <li><a href="/cpu-compare"><i class="fa fa-microchip"></i> CPU Compare</a></li>
+  </ul>
+  <div class="nav-right" id="navUserSection">
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">☀️</button>
+  </div>
+</nav>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<div class="page-wrap" style="max-width:1200px;margin:90px auto 40px;padding:0 24px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+    <div>
+      <h1 style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;">❤️ My Wishlist</h1>
+      <span class="res-count" id="wlCount" style="color:var(--text2);font-size:14px;">0 items saved</span>
+    </div>
+    <button class="btn-sec" onclick="clearWishlist()" style="padding:9px 18px;border-radius:10px;background:rgba(255,77,109,.1);border:1px solid rgba(255,77,109,.25);color:var(--red);cursor:pointer;font-size:13px;font-weight:600;">
+      <i class="fa fa-trash"></i> Clear All
+    </button>
+  </div>
+  <div class="card-grid" id="wlGrid">
+    <div class="empty-box"><i class="fa fa-heart"></i><p>Your wishlist is empty!<br><a href="/app" style="color:var(--accent2)">Search laptops</a> and tap 🤍 to save ones you love.</p></div>
+  </div>
+</div>
+
+<footer style="text-align:center;padding:30px;color:var(--text2);font-size:13px;border-top:1px solid var(--border);">© 2026 LaptopPredict</footer>
+
+<script>
+function loadWishlist() {
+  const wl = JSON.parse(localStorage.getItem('lp_wish') || '[]');
+  document.getElementById('wlCount').textContent = wl.length + ' item' + (wl.length !== 1 ? 's' : '') + ' saved';
+  const g = document.getElementById('wlGrid');
+  if (!wl.length) {
+    g.innerHTML = '<div class="empty-box"><i class="fa fa-heart"></i><p>Your wishlist is empty!<br><a href="/app" style="color:var(--accent2)">Search laptops</a> and tap 🤍 to save ones you love.</p></div>';
+    return;
+  }
+  window._cards = wl;
+  g.innerHTML = wl.map((it, i) => mkCard(it, i, 'wishlist')).join('');
+}
+
+function rmWish(idx) {
+  const wl = JSON.parse(localStorage.getItem('lp_wish') || '[]');
+  wl.splice(idx, 1);
+  localStorage.setItem('lp_wish', JSON.stringify(wl));
+  updWBadge();
+  loadWishlist();
+  toast('', '🤍 Removed from wishlist');
+}
+
+function clearWishlist() {
+  if (!confirm('Clear entire wishlist?')) return;
+  localStorage.removeItem('lp_wish');
+  updWBadge();
+  loadWishlist();
+  toast('', '🤍 Wishlist cleared');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadWishlist();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>LaptopPredict — CPU Compare</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="_shared.js"></script>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="/" style="text-decoration:none;"><div class="logo">💻 Laptop<span>Predict</span></div></a>
+  <ul class="nav-links">
+    <li><a onclick="showTab('search')" style="cursor:pointer"><i class="fa fa-search"></i> Search & Predict</a></li>
+    <li><a onclick="showTab('build')" style="cursor:pointer"><i class="fa fa-sliders-h"></i> Build & Estimate</a></li>
+    <li><a onclick="showTab('history')" style="cursor:pointer"><i class="fa fa-history"></i> History</a></li>
+    <li><a onclick="showTab('wishlist')" style="cursor:pointer"><i class="fa fa-heart"></i> Wishlist</a></li>
+    <li><a onclick="showTab('CPU Comparison')" style="cursor:pointer"><i class="fa fa-microchip"></i> CPU Compare</a></li>
+  </ul>
+  <div class="nav-right" id="navUserSection">
+    <button class="wishlist-btn" onclick="showTab('wishlist')">
+      <i class="fa fa-heart"></i> Wishlist <span class="wishlist-count" id="wishlistCount">0</span>
+    </button>
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">☀️</button>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-content">
+    <h1>Find Your Perfect Laptop<br><span>Price Intelligence</span></h1>
+    <p>Compare real-time prices • ML predictions • Demand analysis</p>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-num">6+</div><div class="stat-label">Platforms</div></div>
+      <div class="stat"><div class="stat-num">ML</div><div class="stat-label">Powered</div></div>
+      <div class="stat"><div class="stat-num">Live</div><div class="stat-label">Prices</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="tab-bar">
+  <div class="tab" onclick="showTab('search')"><i class="fa fa-search"></i> Search & Predict</div>
+  <div class="tab" onclick="showTab('build')"><i class="fa fa-sliders-h"></i> Build & Estimate</div>
+  <div class="tab" onclick="showTab('history')"><i class="fa fa-history"></i> History</div>
+  <div class="tab" onclick="showTab('wishlist')"><i class="fa fa-heart"></i> Wishlist</div>
+  <div class="tab active" onclick="showTab('CPU Comparison')"><i class="fa fa-microchip"></i> CPU Compare</div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<div class="page-wrap">
+  <div class="page-title">⚡ CPU Benchmark Comparison</div>
+  <div class="form-card">
+    <div class="cpu-sel-row">
+      <div class="fg"><label>Processor A</label><select id="cpuA"></select></div>
+      <div class="vs">VS</div>
+      <div class="fg"><label>Processor B</label><select id="cpuB"></select></div>
+    </div>
+    <div style="margin-top:16px;text-align:center;">
+      <button class="btn-compare" onclick="doCompare()"><i class="fa fa-columns"></i> Compare Now</button>
+    </div>
+  </div>
+
+  <div class="cmp-tbl-wrap" id="cmpWrap">
+    <div class="cpu-head-row">
+      <div></div>
+      <div class="chd a" id="headA">Processor A</div>
+      <div class="chd b" id="headB">Processor B</div>
+    </div>
+    <div id="cpuRows" style="background:var(--card);border:1px solid var(--border);border-radius:0 0 12px 12px;overflow:hidden;"></div>
+    <div class="winner-box" id="winnerBox">
+      <div class="wtrophy">🏆</div>
+      <div class="wtxt"><h4 id="winnerTitle">—</h4><p id="winnerSub">—</p></div>
+    </div>
+    <div class="radar-card"><h3>📡 Performance Radar Chart</h3><canvas id="radar" style="max-height:320px;"></canvas></div>
+  </div>
+</div>
+
+<footer>© 2026 LaptopPredict</footer>
+
+<script>
+const CPU_DB = [
+  // ========================== INTEL CORE i3 (11th - 14th Gen) ==========================
+  {id:'i3-11', name:'Intel Core i3 11th Gen', score:{perf:30,multi:28,single:38,power:80,gaming:20,ai:10}, arch:'Tiger Lake', tdp:'15W', cores:'2C/4T', cache:'6MB', nm:'10nm', freq:'4.1 GHz', pv:30000},
+  {id:'i3-12', name:'Intel Core i3 12th Gen', score:{perf:38,multi:35,single:45,power:78,gaming:25,ai:20}, arch:'Alder Lake', tdp:'15W', cores:'6C/8T', cache:'10MB', nm:'Intel 7', freq:'4.4 GHz', pv:35000},
+  {id:'i3-13', name:'Intel Core i3 13th Gen', score:{perf:42,multi:38,single:48,power:75,gaming:28,ai:22}, arch:'Raptor Lake', tdp:'15W', cores:'6C/8T', cache:'10MB', nm:'Intel 7', freq:'4.5 GHz', pv:38000},
+  {id:'i3-14', name:'Intel Core i3 14th Gen', score:{perf:45,multi:40,single:50,power:72,gaming:30,ai:25}, arch:'Raptor Lake R', tdp:'15W', cores:'6C/8T', cache:'10MB', nm:'Intel 7', freq:'4.7 GHz', pv:42000},
+
+  // ========================== INTEL CORE i5 (11th - 14th Gen) ==========================
+  {id:'i5-11', name:'Intel Core i5 11th Gen', score:{perf:48,multi:45,single:52,power:65,gaming:45,ai:28}, arch:'Tiger Lake', tdp:'28W', cores:'4C/8T', cache:'8MB', nm:'10nm', freq:'4.4 GHz', pv:45000},
+  {id:'i5-12', name:'Intel Core i5 12th Gen', score:{perf:55,multi:52,single:60,power:58,gaming:56,ai:40}, arch:'Alder Lake', tdp:'28W', cores:'10C/12T', cache:'18MB', nm:'Intel 7', freq:'4.4 GHz', pv:50000},
+  {id:'i5-13', name:'Intel Core i5 13th Gen', score:{perf:60,multi:57,single:64,power:55,gaming:60,ai:44}, arch:'Raptor Lake', tdp:'28W', cores:'12C/16T', cache:'24MB', nm:'Intel 7', freq:'4.6 GHz', pv:52000},
+  {id:'i5-14', name:'Intel Core i5 14th Gen', score:{perf:63,multi:60,single:66,power:53,gaming:62,ai:46}, arch:'Raptor Lake R', tdp:'28W', cores:'12C/16T', cache:'24MB', nm:'Intel 7', freq:'4.7 GHz', pv:54000},
+
+  // ========================== INTEL CORE i7 (11th - 14th Gen) ==========================
+  {id:'i7-11', name:'Intel Core i7 11th Gen', score:{perf:65,multi:62,single:64,power:55,gaming:65,ai:35}, arch:'Tiger Lake', tdp:'45W', cores:'8C/16T', cache:'24MB', nm:'10nm', freq:'4.8 GHz', pv:65000},
+  {id:'i7-12', name:'Intel Core i7 12th Gen', score:{perf:70,multi:68,single:68,power:54,gaming:70,ai:50}, arch:'Alder Lake', tdp:'45W', cores:'14C/20T', cache:'24MB', nm:'Intel 7', freq:'4.7 GHz', pv:70000},
+  {id:'i7-13', name:'Intel Core i7 13th Gen', score:{perf:76,multi:74,single:72,power:50,gaming:75,ai:55}, arch:'Raptor Lake', tdp:'45W', cores:'16C/24T', cache:'30MB', nm:'Intel 7', freq:'5.0 GHz', pv:75000},
+  {id:'i7-14', name:'Intel Core i7 14th Gen', score:{perf:79,multi:77,single:74,power:48,gaming:78,ai:57}, arch:'Raptor Lake R', tdp:'45W', cores:'16C/24T', cache:'30MB', nm:'Intel 7', freq:'5.2 GHz', pv:78000},
+
+  // ========================== INTEL CORE i9 (11th - 14th Gen) ==========================
+  {id:'i9-11', name:'Intel Core i9 11th Gen', score:{perf:75,multi:78,single:72,power:35,gaming:80,ai:45}, arch:'Tiger Lake', tdp:'45W', cores:'8C/16T', cache:'24MB', nm:'10nm', freq:'5.0 GHz', pv:85000},
+  {id:'i9-12', name:'Intel Core i9 12th Gen', score:{perf:82,multi:80,single:78,power:42,gaming:82,ai:58}, arch:'Alder Lake', tdp:'45W', cores:'14C/20T', cache:'24MB', nm:'Intel 7', freq:'5.0 GHz', pv:95000},
+  {id:'i9-13', name:'Intel Core i9 13th Gen', score:{perf:86,multi:85,single:80,power:38,gaming:84,ai:60}, arch:'Raptor Lake', tdp:'55W', cores:'24C/32T', cache:'36MB', nm:'Intel 7', freq:'5.4 GHz', pv:110000},
+  {id:'i9-14', name:'Intel Core i9 14th Gen', score:{perf:88,multi:87,single:82,power:36,gaming:86,ai:62}, arch:'Raptor Lake R', tdp:'55W', cores:'24C/32T', cache:'36MB', nm:'Intel 7', freq:'5.6 GHz', pv:120000},
+
+// ========================== INTEL CORE ULTRA ( 5) ==========================
+  // Sabse naye chips (Late 2024-2025) - Best for Battery & AI
+  {id:'u5-s1', name:'Intel Core Ultra 5 125H', score:{perf:74,multi:76,single:72,power:75,gaming:65,ai:70}, arch:'Meteor Lake', tdp:'28W', cores:'14C/18T', cache:'18MB', nm:'Intel 4', freq:'4.5 GHz', pv:85000},
+  {id:'u5-s2', name:'Intel Core Ultra 5 226V', score:{perf:78,multi:72,single:80,power:90,gaming:70,ai:85}, arch:'Lunar Lake', tdp:'17W', cores:'8C/8T', cache:'8MB',  nm:'TSMC 3nm', freq:'4.5 GHz', pv:95000},
+  {id:'c5-120u', name:'Intel Core 5 120U', score:{perf:62,multi:58,single:65,power:82,gaming:45,ai:30}, arch:'Raptor Lake R', tdp:'15W', cores:'10C/12T', cache:'12MB', nm:'Intel 7', freq:'5.0 GHz', pv:60000},
+  
+  // ========================== INTEL CORE ULTRA (7) ==========================
+  // Pehle AI chips (Early 2024)
+  {id:'u7-s1', name:'Intel Core Ultra 7 155H', score:{perf:82,multi:84,single:78,power:70,gaming:75,ai:78}, arch:'Meteor Lake', tdp:'28W', cores:'16C/22T', cache:'24MB', nm:'Intel 4', freq:'4.8 GHz', pv:105000},
+  {id:'u7-s2', name:'Intel Core Ultra 7 258V', score:{perf:84,multi:80,single:86,power:92,gaming:78,ai:90}, arch:'Lunar Lake', tdp:'17W', cores:'8C/8T', cache:'12MB', nm:'TSMC 3nm', freq:'4.8 GHz', pv:120000},
+  {id:'c7-150u', name:'Intel Core 7 150U', score:{perf:68,multi:65,single:70,power:80,gaming:50,ai:35}, arch:'Raptor Lake R', tdp:'15W', cores:'10C/12T', cache:'12MB', nm:'Intel 7', freq:'5.4 GHz', pv:75000},
+  
+  // ========================== INTEL CORE (9) ==========================
+  {id:'u9-s1', name:'Intel Core Ultra 9 185H', score:{perf:86,multi:88,single:82,power:65,gaming:80,ai:82}, arch:'Meteor Lake', tdp:'45W', cores:'16C/22T', cache:'24MB', nm:'Intel 4', freq:'5.1 GHz', pv:135000},
+  {id:'u9-s2', name:'Intel Core Ultra 9 288V', score:{perf:88,multi:85,single:90,power:94,gaming:82,ai:95}, arch:'Lunar Lake', tdp:'30W', cores:'8C/8T', cache:'12MB', nm:'TSMC 3nm', freq:'5.1 GHz', pv:150000},
+  {id:'c3-100u', name:'Intel Core 3 100U', score:{perf:45,multi:42,single:50,power:85,gaming:30,ai:20}, arch:'Raptor Lake R', tdp:'15W', cores:'6C/8T',   cache:'10MB', nm:'Intel 7', freq:'4.7 GHz', pv:45000},
+
+// ========================== AMD RYZEN SERIES (3, 5, 7, 9) ==========================
+  
+  // Ryzen 3 (Budget/Entry)
+  {id:'r3-3k', name:'AMD Ryzen 3 3250U', score:{perf:25,multi:22,single:30,power:85,gaming:15,ai:5}, arch:'Zen+', tdp:'15W', cores:'2C/4T', cache:'4MB', nm:'12nm', freq:'3.5 GHz', pv:28000},
+  {id:'r3-5k', name:'AMD Ryzen 3 5300U', score:{perf:32,multi:30,single:38,power:82,gaming:22,ai:12}, arch:'Zen 2', tdp:'15W', cores:'4C/8T', cache:'4MB', nm:'7nm', freq:'3.8 GHz', pv:32000},
+  {id:'r3-7k', name:'AMD Ryzen 3 7320U', score:{perf:35,multi:32,single:40,power:84,gaming:20,ai:18}, arch:'Mendocino', tdp:'15W', cores:'4C/8T', cache:'4MB', nm:'6nm', freq:'4.1 GHz', pv:35000},
+
+  // Ryzen 5 (Mainstream)
+  {id:'r5-4k', name:'AMD Ryzen 5 4500U', score:{perf:45,multi:42,single:48,power:75,gaming:38,ai:20}, arch:'Zen 2', tdp:'15W', cores:'6C/6T', cache:'8MB', nm:'7nm', freq:'4.0 GHz', pv:38000},
+  {id:'r5-5k', name:'AMD Ryzen 5 5500U', score:{perf:56,multi:54,single:58,power:62,gaming:55,ai:38}, arch:'Zen 2/3', tdp:'25W', cores:'6C/12T', cache:'11MB', nm:'7nm', freq:'4.0 GHz', pv:42000},
+  {id:'r5-6k', name:'AMD Ryzen 5 6600H', score:{perf:62,multi:60,single:62,power:60,gaming:64,ai:42}, arch:'Zen 3+', tdp:'45W', cores:'6C/12T', cache:'16MB', nm:'6nm', freq:'4.5 GHz', pv:55000},
+  {id:'r5-7k', name:'AMD Ryzen 5 7640HS', score:{perf:68,multi:66,single:70,power:65,gaming:72,ai:65}, arch:'Zen 4', tdp:'35W', cores:'6C/12T', cache:'16MB', nm:'4nm', freq:'5.0 GHz', pv:68000},
+
+  // Ryzen 7 (High Performance)
+  {id:'r7-4k', name:'AMD Ryzen 7 4800H', score:{perf:65,multi:70,single:60,power:45,gaming:65,ai:30}, arch:'Zen 2', tdp:'45W', cores:'8C/16T', cache:'8MB', nm:'7nm', freq:'4.2 GHz', pv:60000},
+  {id:'r7-5k', name:'AMD Ryzen 7 5800H', score:{perf:72,multi:74,single:68,power:50,gaming:70,ai:45}, arch:'Zen 3', tdp:'45W', cores:'8C/16T', cache:'16MB', nm:'7nm', freq:'4.4 GHz', pv:65000},
+  {id:'r7-6k', name:'AMD Ryzen 7 6800H', score:{perf:76,multi:78,single:72,power:58,gaming:78,ai:50}, arch:'Zen 3+', tdp:'45W', cores:'8C/16T', cache:'16MB', nm:'6nm', freq:'4.7 GHz', pv:75000},
+  {id:'r7-7k', name:'AMD Ryzen 7 7735HS', score:{perf:78,multi:76,single:73,power:60,gaming:76,ai:58}, arch:'Zen 3+', tdp:'35W', cores:'8C/16T', cache:'16MB', nm:'6nm', freq:'4.75 GHz', pv:72000},
+  {id:'r7-8k', name:'AMD Ryzen 7 8845HS', score:{perf:84,multi:82,single:78,power:65,gaming:82,ai:78}, arch:'Zen 4', tdp:'45W', cores:'8C/16T', cache:'24MB', nm:'4nm', freq:'5.1 GHz', pv:85000},
+
+  // Ryzen 9 (Flagship)
+  {id:'r9-5k', name:'AMD Ryzen 9 5900HX', score:{perf:80,multi:82,single:75,power:40,gaming:80,ai:55}, arch:'Zen 3', tdp:'45W', cores:'8C/16T', cache:'20MB', nm:'7nm', freq:'4.6 GHz', pv:90000},
+  {id:'r9-6k', name:'AMD Ryzen 9 6900HX', score:{perf:85,multi:86,single:78,power:45,gaming:84,ai:60}, arch:'Zen 3+', tdp:'45W', cores:'8C/16T', cache:'20MB', nm:'6nm', freq:'4.9 GHz', pv:100000},
+  {id:'r9-7k', name:'AMD Ryzen 9 7945HX', score:{perf:94,multi:98,single:85,power:35,gaming:92,ai:70}, arch:'Zen 4', tdp:'55W', cores:'16C/32T', cache:'64MB', nm:'4nm', freq:'5.4 GHz', pv:125000},
+  {id:'r9-8k', name:'AMD Ryzen 9 8945HS', score:{perf:90,multi:89,single:82,power:58,gaming:88,ai:85}, arch:'Zen 4', tdp:'45W', cores:'8C/16T', cache:'24MB', nm:'4nm', freq:'5.2 GHz', pv:115000},
+  {id:'r9-9k', name:'AMD Ryzen 9 9950HX', score:{perf:97,multi:99,single:92,power:42,gaming:96,ai:95}, arch:'Zen 5', tdp:'55W', cores:'16C/32T', cache:'80MB', nm:'4nm', freq:'5.7 GHz', pv:150000},
+
+  // ========================== APPLE M-SERIES (COMPLETE) ==========================
+  
+  // M1 Series
+  {id:'m1',    name:'Apple M1', score:{perf:74,multi:72,single:82,power:95,gaming:60,ai:72}, arch:'ARM', tdp:'10W', cores:'8C', cache:'12MB', nm:'5nm', freq:'3.2 GHz', pv:65000},
+  {id:'m1-pro',name:'Apple M1 Pro', score:{perf:82,multi:84,single:82,power:88,gaming:72,ai:75}, arch:'ARM', tdp:'30W', cores:'10C', cache:'24MB', nm:'5nm', freq:'3.2 GHz', pv:120000},
+  {id:'m1-max',name:'Apple M1 Max', score:{perf:88,multi:90,single:82,power:80,gaming:82,ai:78}, arch:'ARM', tdp:'60W', cores:'10C', cache:'48MB', nm:'5nm', freq:'3.2 GHz', pv:180000},
+
+  // M2 Series
+  {id:'m2',    name:'Apple M2', score:{perf:80,multi:79,single:86,power:95,gaming:65,ai:78}, arch:'ARM', tdp:'10W', cores:'8C', cache:'16MB', nm:'5nm', freq:'3.5 GHz', pv:80000},
+  {id:'m2-pro',name:'Apple M2 Pro', score:{perf:86,multi:88,single:86,power:85,gaming:78,ai:82}, arch:'ARM', tdp:'30W', cores:'12C', cache:'30MB', nm:'5nm', freq:'3.5 GHz', pv:150000},
+  {id:'m2-max',name:'Apple M2 Max', score:{perf:90,multi:92,single:86,power:78,gaming:88,ai:85}, arch:'ARM', tdp:'60W', cores:'12C', cache:'38MB', nm:'5nm', freq:'3.7 GHz', pv:210000},
+
+  // M3 Series
+  {id:'m3',    name:'Apple M3', score:{perf:86,multi:84,single:90,power:96,gaming:70,ai:82}, arch:'ARM', tdp:'10W', cores:'8C', cache:'16MB', nm:'3nm', freq:'4.0 GHz', pv:105000},
+  {id:'m3-pro',name:'Apple M3 Pro', score:{perf:91,multi:90,single:92,power:92,gaming:82,ai:88}, arch:'ARM', tdp:'25W', cores:'12C', cache:'24MB', nm:'3nm', freq:'4.0 GHz', pv:180000},
+  {id:'m3-max',name:'Apple M3 Max', score:{perf:96,multi:98,single:92,power:85,gaming:90,ai:94}, arch:'ARM', tdp:'60W', cores:'16C', cache:'48MB', nm:'3nm', freq:'4.0 GHz', pv:280000},
+
+  // M4 Series (Latest)
+  {id:'m4',    name:'Apple M4', score:{perf:92,multi:91,single:94,power:97,gaming:74,ai:92}, arch:'ARM', tdp:'10W', cores:'10C', cache:'20MB', nm:'3nm', freq:'4.4 GHz', pv:135000},
+  {id:'m4-pro',name:'Apple M4 Pro', score:{perf:97,multi:98,single:96,power:90,gaming:92,ai:96}, arch:'ARM', tdp:'30W', cores:'14C', cache:'32MB', nm:'3nm', freq:'4.5 GHz', pv:220000},
+  {id:'m4-max',name:'Apple M4 Max', score:{perf:99,multi:100,single:98,power:82,gaming:98,ai:98}, arch:'ARM', tdp:'60W', cores:'16C', cache:'48MB', nm:'3nm', freq:'4.5 GHz', pv:320000},
+];
+
+let radarChart = null;
+
+function initDrops() {
+  const opts = CPU_DB.map(c => '<option value="' + c.id + '">' + c.name + '</option>').join('');
+  document.getElementById('cpuA').innerHTML = opts;
+  document.getElementById('cpuB').innerHTML = opts;
+  document.getElementById('cpuA').value = 'i7-13';
+  document.getElementById('cpuB').value = 'r7-7k';
+}
+
+function doCompare() {
+  const a = CPU_DB.find(c => c.id === document.getElementById('cpuA').value);
+  const b = CPU_DB.find(c => c.id === document.getElementById('cpuB').value);
+  if (!a || !b) { toast('err', 'Select two processors'); return; }
+
+  document.getElementById('headA').textContent = a.name;
+  document.getElementById('headB').textContent = b.name;
+
+  const info = [
+    {l:'Architecture',  va:a.arch,  vb:b.arch},
+    {l:'Cores / Threads',va:a.cores,vb:b.cores},
+    {l:'Boost Freq',    va:a.freq,  vb:b.freq},
+    {l:'Cache',         va:a.cache, vb:b.cache},
+    {l:'Process Node',  va:a.nm,    vb:b.nm},
+    {l:'TDP',           va:a.tdp,   vb:b.tdp},
+    {l:'Approx Price',  va:'₹'+a.pv.toLocaleString('en-IN'), vb:'₹'+b.pv.toLocaleString('en-IN'), bestFn:()=>a.pv<b.pv?'a':'b'},
+  ];
+  const bars = [{l:'Overall Perf',k:'perf'},{l:'Multi-Core',k:'multi'},{l:'Single-Core',k:'single'},{l:'Efficiency',k:'power'},{l:'Gaming',k:'gaming'},{l:'AI / ML',k:'ai'}];
+
+  let html = '';
+  info.forEach(r => {
+    const ba = r.bestFn ? r.bestFn() === 'a' : false;
+    const bb = r.bestFn ? r.bestFn() === 'b' : false;
+    html += '<div class="cpu-row"><div class="crl">' + r.l + '</div>' +
+      '<div class="crv ' + (ba?'best':'') + '">' + r.va + (ba?' 🏆':'') + '</div>' +
+      '<div class="crv ' + (bb?'best':'') + '">' + r.vb + (bb?' 🏆':'') + '</div></div>';
+  });
+  bars.forEach(r => {
+    const av = a.score[r.k], bv = b.score[r.k], ba = av > bv, bb = bv > av;
+    html += '<div class="cpu-row"><div class="crl">' + r.l + '</div>' +
+      '<div class="crbar"><div class="cbar"><div class="cbfa" style="width:' + av + '%"></div></div><span class="cbn" style="color:var(--accent2)">' + av + (ba?' ✓':'') + '</span></div>' +
+      '<div class="crbar"><div class="cbar"><div class="cbfb" style="width:' + bv + '%"></div></div><span class="cbn" style="color:var(--accent)">' + bv + (bb?' ✓':'') + '</span></div></div>';
+  });
+  document.getElementById('cpuRows').innerHTML = html;
+
+  const sa  = Object.values(a.score).reduce((s,v) => s+v, 0);
+  const sb  = Object.values(b.score).reduce((s,v) => s+v, 0);
+  const win = sa >= sb ? a : b;
+  const los = sa >= sb ? b : a;
+  const diff = Math.abs(sa - sb);
+
+  document.getElementById('winnerTitle').textContent = win.name + ' wins overall';
+  document.getElementById('winnerSub').textContent   = Math.round(diff / sb * 100) + '% better aggregate score vs ' + los.name + '.' +
+    (win.id.startsWith('m') ? ' Exceptional efficiency & battery life.' : win.id.startsWith('r') ? ' Better multi-core & value for money.' : ' Strong gaming & single-core perf.');
+
+  document.getElementById('cmpWrap').classList.add('show');
+  drawRadar(a, b);
+}
+
+function drawRadar(a, b) {
+  const ctx = document.getElementById('radar').getContext('2d');
+  if (radarChart) radarChart.destroy();
+  const dk = document.documentElement.getAttribute('data-theme') === 'dark';
+  const tc = dk ? '#8fa3c0' : '#4a5878';
+  const gc = dk ? 'rgba(30,45,69,.6)' : 'rgba(208,218,234,.6)';
+  radarChart = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: ['Performance','Multi-Core','Single-Core','Efficiency','Gaming','AI/ML'],
+      datasets: [
+        { label:a.name, data:[a.score.perf,a.score.multi,a.score.single,a.score.power,a.score.gaming,a.score.ai], backgroundColor:'rgba(61,142,248,.2)',  borderColor:'#3d8ef8', pointBackgroundColor:'#3d8ef8', borderWidth:2 },
+        { label:b.name, data:[b.score.perf,b.score.multi,b.score.single,b.score.power,b.score.gaming,b.score.ai], backgroundColor:'rgba(245,166,35,.2)', borderColor:'#f5a623', pointBackgroundColor:'#f5a623', borderWidth:2 }
+      ]
+    },
+    options: { responsive:true, scales:{ r:{ grid:{color:gc}, ticks:{display:false}, pointLabels:{color:tc,font:{size:12}}, min:0, max:100 } }, plugins:{ legend:{ labels:{ color:tc } } } }
+  });
+}
+
+window.onload = () => { initTheme(); updWBadge(); initDrops(); };
+</script>
+</body>
+</html>

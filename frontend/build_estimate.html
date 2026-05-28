@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>LaptopPredict — Build & Estimate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="_shared.js"></script>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="/" style="text-decoration:none;"><div class="logo">💻 Laptop<span>Predict</span></div></a>
+  <ul class="nav-links">
+    <li><a onclick="showTab('search')" style="cursor:pointer"><i class="fa fa-search"></i> Search & Predict</a></li>
+    <li><a onclick="showTab('build')" style="cursor:pointer"><i class="fa fa-sliders-h"></i> Build & Estimate</a></li>
+    <li><a onclick="showTab('history')" style="cursor:pointer"><i class="fa fa-history"></i> History</a></li>
+    <li><a onclick="showTab('wishlist')" style="cursor:pointer"><i class="fa fa-heart"></i> Wishlist</a></li>
+    <li><a onclick="showTab('CPU Comparison')" style="cursor:pointer"><i class="fa fa-microchip"></i> CPU Compare</a></li>
+  </ul>
+  <div class="nav-right" id="navUserSection">
+    <button class="wishlist-btn" onclick="showTab('wishlist')">
+      <i class="fa fa-heart"></i> Wishlist <span class="wishlist-count" id="wishlistCount">0</span>
+    </button>
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">☀️</button>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-content">
+    <h1>Find Your Perfect Laptop<br><span>Price Intelligence</span></h1>
+    <p>Compare real-time prices • ML predictions • Demand analysis</p>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-num">6+</div><div class="stat-label">Platforms</div></div>
+      <div class="stat"><div class="stat-num">ML</div><div class="stat-label">Powered</div></div>
+      <div class="stat"><div class="stat-num">Live</div><div class="stat-label">Prices</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="tab-bar">
+  <div class="tab" onclick="showTab('search')"><i class="fa fa-search"></i> Search & Predict</div>
+  <div class="tab active" onclick="showTab('build')"><i class="fa fa-sliders-h"></i> Build & Estimate</div>
+  <div class="tab" onclick="showTab('history')"><i class="fa fa-history"></i> History</div>
+  <div class="tab" onclick="showTab('wishlist')"><i class="fa fa-heart"></i> Wishlist</div>
+  <div class="tab" onclick="showTab('CPU Comparison')"><i class="fa fa-microchip"></i> CPU Compare</div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<div class="page-wrap">
+  <div class="page-title">⚙️ Build Your Laptop & Estimate Price</div>
+  <div class="build-grid">
+    <div class="bc">
+      <h3>🔧 Select Components</h3>
+      <div class="bi">
+        <div class="fg"><label>Processor</label>
+        <select id="b_cpu" onchange="calc()">
+          <optgroup label="Intel Processors">
+            <option value="3">Intel Core i3</option>
+            <option value="5">Intel Core i5</option>
+            <option value="7">Intel Core i7</option>
+            <option value="9">Intel Core i9 (14th/15th Gen)</option>
+            <option value="8" selected>Intel Core Ultra 5</option>
+            <option value="9">Intel Core Ultra 7</option>
+            <option value="10">Intel Core Ultra 9 (Series 2)</option>
+          </optgroup>
+
+          <optgroup label="AMD Ryzen">
+            <option value="3">AMD Ryzen 3</option>
+            <option value="5">AMD Ryzen 5</option>
+            <option value="7">AMD Ryzen 7</option>
+            <option value="9">AMD Ryzen 9</option>
+            <option value="10">AMD Ryzen AI 9 HX (Strix Point)</option>
+          </optgroup>
+
+          <optgroup label="Apple Silicon">
+            <option value="6">Apple M1</option>
+            <option value="7">Apple M2 / M1 Max</option>
+            <option value="8">Apple M3 / M2 Pro</option>
+            <option value="9">Apple M4 / M3 Max</option>
+            <option value="10">Apple M5 Pro</option>
+            <option value="10">Apple M5 Max (Next Gen)</option>
+          </optgroup>
+
+          <optgroup label="Qualcomm Snapdragon">
+            <option value="9">Snapdragon X Elite (12-Core)</option>
+            <option value="8">Snapdragon X Plus (10-Core)</option>
+          </optgroup>
+        </select>
+        </div>
+        <div class="fg"><label>Generation</label>
+        <select id="b_gen" onchange="calc()">
+            <option value="10">Intel 10th Gen (Legacy)</option>
+            <option value="11">Intel 11th Gen / AMD Ryzen 5000</option>
+            <option value="12">Intel 12th Gen / AMD Ryzen 6000</option>
+            <option value="13">Intel 13th Gen</option>
+            <option value="14" selected>Intel 14th Gen / Raptor Lake R</option>
+            <option value="15">Intel 15th Gen / Core Ultra</option>
+            <option value="16">Intel Core Ultra Series 2 (200V)</option>
+            <option value="13">AMD Ryzen 7000 Series</option>
+            <option value="14">AMD Ryzen 8000 Series</option>
+            <option value="15">AMD Ryzen 9000 / AI 300 Series</option>
+            <option value="15">Snapdragon X Elite / Plus</option>
+            <option value="11">Apple M1 Series</option>
+            <option value="12">Apple M2 Series</option>
+            <option value="13">Apple M3 Series</option>
+            <option value="14">Apple M4 Series</option>
+            <option value="15">Apple M5 Series</option>
+        </select>
+        </div>
+        <div class="fg"><label>RAM</label>
+          <select id="b_ram" onchange="calc()">
+            <option value="8">8 GB</option><option value="16" selected>16 GB</option>
+            <option value="32">32 GB</option><option value="64">64 GB</option>
+          </select>
+        </div>
+        <div class="fg"><label>Storage</label>
+          <select id="b_stor" onchange="calc()">
+            <option value="128">128 GB SSD</option><option value="256">256 GB SSD</option><option value="512" selected>512 GB SSD</option>
+            <option value="1024">1 TB SSD</option><option value="2048">2 TB SSD</option>
+          </select>
+        </div>
+        <div class="fg"><label>GPU</label>
+        <select id="b_gpu" onchange="calc()">
+        <optgroup label="NVIDIA GeForce">
+          <option value="10">NVIDIA RTX 5090 (Next Gen)</option>
+          <option value="10">NVIDIA RTX 4090</option>
+          <option value="9">NVIDIA RTX 4080 Super</option>
+          <option value="8">NVIDIA RTX 4070 Super</option>
+          <option value="8">NVIDIA RTX 3080</option>
+          <option value="7">NVIDIA RTX 4060 Ti</option>
+          <option value="7">NVIDIA RTX 4060 Laptop</option>
+          <option value="6" selected>NVIDIA RTX 4050 Laptop</option>
+          <option value="6">NVIDIA RTX 3070</option>
+          <option value="5">NVIDIA RTX 3060</option>
+          <option value="5">NVIDIA RTX 3050</option>
+        </optgroup>
+
+        <optgroup label="AMD Radeon">
+          <option value="9">AMD RX 9070 XT (Next Gen)</option>
+          <option value="9">AMD RX 7900 XTX</option>
+          <option value="8">AMD RX 7800 XT</option>
+          <option value="6">AMD RX 7600</option>
+        </optgroup>
+
+        <optgroup label="Intel Graphics">
+          <option value="4">Intel Arc B580 (Battlemage)</option>
+          <option value="4">Intel Arc A770</option>
+          <option value="3">Intel Arc Integrated</option>
+          <option value="2">Intel Iris Xe</option>
+        </optgroup>
+
+        <optgroup label="Apple Silicon GPU">
+          <option value="10">Apple M4 GPU</option>
+          <option value="9">Apple M3 GPU</option>
+          <option value="8">Apple M2 GPU</option>
+          <option value="7">Apple M1 GPU</option>
+        </optgroup>
+        </select>
+        </div>
+        <div class="fg"><label>Brand Tier</label>
+          <select id="b_brand" onchange="calc()">
+            <option value=0>HP</option>
+            <option value=1>Dell</option>
+            <option value=2>Lenovo</option>
+            <option value=3>ASUS</option>
+            <option value=4>Acer</option>
+            <option value=5>Samsung</option>
+            <option value=6>MSI</option>
+            <option value=7>Apple</option>
+          </select>
+        </div>
+        <div class="fg"><label>Display (inches)</label>
+          <input type="number" id="b_disp" value="15.6" min="11" max="18" step="0.1" oninput="calc()">
+        </div>
+        <div class="fg"><label>Usage</label>
+          <select id="b_use" onchange="calc()">
+            <option value="0">Everyday / Office</option><option value="1">Gaming / Heavy</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="bc">
+        <h3>📊 ML Estimated Price</h3>
+        <div class="res-box">
+          <div class="est-lbl">Predicted Market Price</div>
+          <div class="est-p" id="bPrice">₹—</div>
+          <div class="est-r" id="bRange">Configure specs above</div>
+          <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+            <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;">Component Scores</div>
+            <div class="fbars" id="bBars"></div>
+          </div>
+        </div>
+        <!-- <div class="tips" id="bTips"></div> -->
+      </div>
+      <div class="bc" style="margin-top:16px;"><h3>🥧 Cost Breakdown</h3><canvas id="bChart" style="max-height:200px;"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<footer>© 2026 LaptopPredict</footer>
+
+<script>
+
+
+  
+  
+  let bChart = null;
+  
+  const MARKET_DATA = {
+    base_price: 18000, // 2026 entry price
+    cpu_multiplier: { 3: 4000, 5: 11000, 6: 18000, 7: 24000, 8: 30000, 9: 45000, 10: 75000 },
+    gpu_extra: { 1: 0, 5: 22000, 6: 32000, 7: 45000, 8: 68000, 10: 160000 },
+    ram_cost: { 8: 2500, 16: 6000, 32: 14000, 64: 32000 },
+    storage_cost: { 256: 1800, 512: 4200, 1024: 9000, 2048: 20000 },
+    // Revised Multipliers: Apple ko 1.68 se hata kar 1.32 kiya hai
+    brand_premium: [1.08, 1.12, 1.06, 1.15, 1.00, 1.20, 1.12, 1.32] 
+};
+
+function calc() {
+  const cpu = parseInt(document.getElementById('b_cpu').value);
+    const gen = parseInt(document.getElementById('b_gen').value);
+    const ram = parseInt(document.getElementById('b_ram').value);
+    const stor = parseInt(document.getElementById('b_stor').value);
+    const gpu = parseInt(document.getElementById('b_gpu').value);
+    const brand = parseInt(document.getElementById('b_brand').value);
+    const disp  = parseFloat(document.getElementById('b_disp').value);
+    const use   = parseInt(document.getElementById('b_use').value);
+    
+    // 1. Hardware Sum
+    let hardwareCost = MARKET_DATA.base_price;
+    hardwareCost += MARKET_DATA.cpu_multiplier[cpu] || 0;
+    hardwareCost += MARKET_DATA.gpu_extra[gpu] || 0;
+    hardwareCost += MARKET_DATA.ram_cost[ram] || 0;
+    hardwareCost += MARKET_DATA.storage_cost[stor] || 0;
+    
+    // 2. Linear Generation Impact (Multiply nahi, Add hoga)
+    // Har generation ke liye ₹4000 ka flat increase
+    const genImpact = (gen - 14) * 4000;
+    hardwareCost += Math.max(0, genImpact);
+
+    
+    // 3. Brand Multiplier (Ab ye sirf hardware par apply hoga)
+    let finalPrice = hardwareCost * MARKET_DATA.brand_premium[brand];
+
+    // 4. M4/High-End Luxury Cap (Price Ceiling)
+    // Agar price 2.5L ke upar jati hai, toh growth slow kar do (Realism)
+    if (finalPrice > 250000) {
+        finalPrice = 250000 + (finalPrice - 250000) * 0.4; 
+      }
+
+      // Formatting
+      const p = Math.round(finalPrice / 500) * 500;
+      const low = Math.round((p * 0.95) / 100) * 100;
+      const high = Math.round((p * 1.05) / 100) * 100;
+
+      document.getElementById('bPrice').textContent = '₹' + p.toLocaleString('en-IN');
+      document.getElementById('bRange').textContent = `Est. Range: ₹${low.toLocaleString('en-IN')} – ₹${high.toLocaleString('en-IN')}`;
+      
+      updateBars(cpu, gpu, ram, brand);
+      drawChart(cpu, gpu, ram, stor, brand, hardwareCost);
+    }
+    
+    function updateBars(cpu, gpu, ram, brand) {
+      const bars = [
+        {l:'Processing Speed', v:cpu, m:10},
+        {l:'Graphic Fidelity', v:gpu, m:10},
+        {l:'Multitasking', v:(ram/64)*10, m:10},
+        {l:'Brand Equity', v:brand + 3, m:10}
+      ];
+      document.getElementById('bBars').innerHTML = bars.map(b =>
+      `<div><div class="fbl"><span>${b.l}</span><span>${Math.round(b.v)}/10</span></div>` +
+      `<div class="fbb"><div class="fbf" style="width:${(b.v/b.m)*100}%"></div></div></div>`
+    ).join('');
+  }
+
+  // // function updateTips(ram, gpu, use, stor, cpu) {
+  // //     const tips = [];
+  // //     if (ram < 16) tips.push({i:'⚠️', t:'Modern Windows/Mac needs 16GB for smooth work.'});
+  // //     if (use === 1 && gpu < 5) tips.push({i:'❌', t:'Gaming needs dedicated GPU (RTX series).'});
+  // //     if (stor <= 256) tips.push({i:'💡', t:'256GB fills quickly; 512GB is the sweet spot.'});
+  // //     if (cpu >= 9 && brand < 2) tips.push({i:'🔥', t:'High-end CPUs in budget brands may heat up.'});
+  // //     if (tips.length === 0) tips.push({i:'✅', t:'This is a professional, well-balanced build.'});
+  
+  // //     document.getElementById('bTips').innerHTML = '<div class="tips-t">💡 Smart Market Advice</div>' +
+  // //         tips.map(t => `<div class="tip-r"><span>${t.i}</span><span>${t.t}</span></div>`).join('');
+  // // }
+  
+  
+  function drawChart(cpu, gpu, ram, stor, brand, hardwareCost) {
+    const ctx = document.getElementById('bChart').getContext('2d');
+    if (bChart) bChart.destroy();
+    
+    const brandTax = (hardwareCost * MARKET_DATA.brand_premium[brand]) - hardwareCost;
+
+    bChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['CPU', 'GPU', 'Memory', 'Storage', 'Brand Tax'],
+            datasets: [{
+                data: [
+                    MARKET_DATA.cpu_multiplier[cpu],
+                    MARKET_DATA.gpu_extra[gpu],
+                    MARKET_DATA.ram_cost[ram],
+                    MARKET_DATA.storage_cost[stor],
+                    brandTax + 5000
+                ],
+                backgroundColor: ['#3b82f6','#f5a623','#10b981','#8b5cf6','#ef4444'],
+                borderWidth: 0,
+                hoverOffset: 15
+            }]
+        },
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false, 
+            plugins: { legend: { position: 'bottom', labels: { color: '#94a3c0', font: { size: 11 }, boxWidth: 10 } } } 
+        }
+    });
+}
+
+window.onload = calc;
+
+
+
+
+
+
+</script>
+</body>
+</html>

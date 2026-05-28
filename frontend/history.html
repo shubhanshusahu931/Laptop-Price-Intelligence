@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>LaptopPredict — History</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+<script src="_shared.js"></script>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="/" style="text-decoration:none;"><div class="logo">💻 Laptop<span>Predict</span></div></a>
+  <ul class="nav-links">
+    <li><a href="/app"><i class="fa fa-search"></i> Search</a></li>
+    <li><a href="/build"><i class="fa fa-sliders-h"></i> Build</a></li>
+    <li><a href="/history-page" style="color:var(--accent)"><i class="fa fa-history"></i> History</a></li>
+    <li><a href="/wishlist-page"><i class="fa fa-heart"></i> Wishlist</a></li>
+    <li><a href="/cpu-compare"><i class="fa fa-microchip"></i> CPU Compare</a></li>
+  </ul>
+  <div class="nav-right" id="navUserSection">
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">☀️</button>
+  </div>
+</nav>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<div class="page-wrap" style="max-width:1200px;margin:90px auto 40px;padding:0 24px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+    <div>
+      <h1 style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;">📜 Recently Viewed</h1>
+      <span id="histCount" style="color:var(--text2);font-size:14px;">Loading...</span>
+    </div>
+    <button onclick="clearHistory()" style="padding:9px 18px;border-radius:10px;background:rgba(255,77,109,.1);border:1px solid rgba(255,77,109,.25);color:var(--red);cursor:pointer;font-size:13px;font-weight:600;">
+      <i class="fa fa-trash"></i> Clear History
+    </button>
+  </div>
+  <div id="histLoading" style="text-align:center;padding:50px;color:var(--text2);">
+    <i class="fa fa-spinner fa-spin" style="font-size:24px;"></i><p style="margin-top:12px;">Loading history...</p>
+  </div>
+  <div class="card-grid" id="histGrid" style="display:none;"></div>
+</div>
+
+<footer style="text-align:center;padding:30px;color:var(--text2);font-size:13px;border-top:1px solid var(--border);">© 2026 LaptopPredict</footer>
+
+<script>
+async function loadHistory() {
+  try {
+    const res  = await fetch('/history', { headers: authHeaders() });
+    const data = await res.json();
+    document.getElementById('histLoading').style.display = 'none';
+    document.getElementById('histGrid').style.display    = 'grid';
+    document.getElementById('histCount').textContent = data.length + ' item' + (data.length !== 1 ? 's' : '') + ' in history';
+    const g = document.getElementById('histGrid');
+    if (!data.length) {
+      g.innerHTML = '<div class="empty-box"><i class="fa fa-clock"></i><p>No search history yet.<br><a href="/app" style="color:var(--accent2)">Search laptops</a> to populate history.</p></div>';
+      return;
+    }
+    window._cards = data;
+    g.innerHTML = data.map((it, i) => mkCard(it, i, 'history')).join('');
+  } catch(e) {
+    document.getElementById('histLoading').innerHTML = '<div class="empty-box"><i class="fa fa-exclamation-triangle"></i><p>Cannot connect to server.<br>Make sure Flask is running on port 8000.</p></div>';
+    document.getElementById('histCount').textContent = 'Error';
+  }
+}
+
+async function clearHistory() {
+  if (!confirm('Clear all history? This cannot be undone.')) return;
+  try {
+    const res = await fetch('/history/clear', { method: 'DELETE', headers: authHeaders() });
+    if (res.ok) { toast('ok', '✅ History cleared'); loadHistory(); }
+    else toast('err', '❌ Could not clear history');
+  } catch(e) { toast('err', '❌ Server error'); }
+}
+
+document.addEventListener('DOMContentLoaded', loadHistory);
+</script>
+</body>
+</html>

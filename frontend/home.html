@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LaptopPredict — Find Your Perfect Laptop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+  --bg: #040813;
+  --bg2: #0a1020;
+  --card: #0d1525;
+  --border: #1a2840;
+  --text: #e8f0fe;
+  --text2: #7a9cc0;
+  --accent: #f5a623;
+  --accent2: #3d8ef8;
+  --green: #00e5a0;
+  --red: #ff4d6d;
+  --purple: #a855f7;
+  --glow: rgba(245,166,35,0.15);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow-x:hidden;}
+h1,h2,h3,.logo{font-family:'Syne',sans-serif;}
+
+/* ─── CANVAS 3D BG ─── */
+#bgCanvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;}
+
+/* ─── NAV ─── */
+.nav{
+  position:fixed;top:0;width:100%;z-index:100;
+  padding:0 5%;height:68px;
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(4,8,19,0.85);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  transition:all .3s;
+}
+.logo{font-size:22px;font-weight:800;color:var(--accent);}
+.logo span{color:var(--text);}
+.nav-links{display:flex;gap:4px;list-style:none;}
+.nav-links a{color:var(--text2);text-decoration:none;font-size:13px;padding:7px 14px;border-radius:8px;transition:.2s;font-weight:500;}
+.nav-links a:hover{color:var(--text);background:rgba(255,255,255,.05);}
+.nav-right{display:flex;gap:10px;align-items:center;}
+
+/* ─── BUTTONS ─── */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:10px;font-weight:600;font-size:14px;cursor:pointer;text-decoration:none;transition:all .25s;border:none;font-family:'DM Sans',sans-serif;}
+.btn-primary{background:linear-gradient(135deg,#f5a623,#e8901a);color:#fff;}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(245,166,35,.4);}
+.btn-outline{background:transparent;color:var(--text);border:1px solid var(--border);}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent);background:rgba(245,166,35,.05);}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid rgba(255,255,255,.1);}
+.btn-ghost:hover{background:rgba(255,255,255,.05);color:var(--text);}
+
+/* ─── USER PILL ─── */
+.user-pill{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,.05);border:1px solid var(--border);
+  padding:5px 14px 5px 5px;border-radius:30px;cursor:pointer;
+  transition:.2s;position:relative;
+}
+.user-pill:hover{border-color:var(--accent2);}
+.user-avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;}
+.user-pill-name{font-size:13px;font-weight:600;color:var(--text);}
+.user-dropdown{
+  position:absolute;top:calc(100% + 10px);right:0;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:14px;padding:8px;min-width:220px;
+  box-shadow:0 20px 60px rgba(0,0,0,.6);
+  opacity:0;pointer-events:none;transform:translateY(-10px);
+  transition:.2s;z-index:200;
+}
+.user-pill:hover .user-dropdown{opacity:1;pointer-events:all;transform:translateY(0);}
+.ud-header{padding:10px 12px 14px;border-bottom:1px solid var(--border);margin-bottom:6px;}
+.ud-name{font-weight:700;font-size:15px;}
+.ud-email{font-size:12px;color:var(--text2);margin-top:2px;}
+.ud-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--text2);transition:.15s;}
+.ud-item:hover{background:rgba(255,255,255,.06);color:var(--text);}
+.ud-item i{width:16px;text-align:center;}
+.ud-sep{height:1px;background:var(--border);margin:6px 0;}
+.ud-switch{font-size:12px;color:var(--text2);padding:6px 12px 4px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;}
+.saved-account{display:flex;align-items:center;gap:8px;padding:7px 12px;border-radius:8px;cursor:pointer;transition:.15s;}
+.saved-account:hover{background:rgba(255,255,255,.06);}
+.saved-account .sa-name{font-size:13px;font-weight:500;color:var(--text);}
+.saved-account .sa-email{font-size:11px;color:var(--text2);}
+
+/* ─── HERO ─── */
+.hero{
+  position:relative;z-index:1;
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  text-align:center;padding:100px 5% 60px;
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(245,166,35,.1);border:1px solid rgba(245,166,35,.25);
+  padding:6px 16px;border-radius:30px;font-size:12px;font-weight:600;
+  color:var(--accent);margin-bottom:28px;letter-spacing:.05em;
+  animation:fadeDown .6s ease both;
+}
+.hero h1{
+  font-size:clamp(38px,6vw,80px);font-weight:800;line-height:1.05;
+  margin-bottom:24px;
+  animation:fadeDown .6s ease .1s both;
+}
+.hero h1 .gradient-text{
+  background:linear-gradient(135deg,#f5a623 0%,#ff6b6b 50%,#a855f7 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.hero p{
+  font-size:18px;color:var(--text2);max-width:560px;margin:0 auto 40px;line-height:1.7;
+  animation:fadeDown .6s ease .2s both;
+}
+.hero-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;animation:fadeDown .6s ease .3s both;}
+.hero-stats{
+  display:flex;gap:40px;justify-content:center;margin-top:70px;
+  animation:fadeDown .6s ease .4s both;flex-wrap:wrap;
+}
+.hs{text-align:center;}
+.hs-num{font-size:36px;font-weight:800;font-family:'Syne',sans-serif;color:var(--accent);}
+.hs-label{font-size:13px;color:var(--text2);margin-top:2px;}
+.hs-divider{width:1px;background:var(--border);}
+
+/* ─── FLOATING LAPTOPS 3D ─── */
+.laptop-3d-container{
+  position:relative;margin-top:60px;height:220px;
+  animation:fadeDown .6s ease .5s both;
+}
+
+/* ─── FEATURES ─── */
+.features{position:relative;z-index:1;padding:100px 5%;}
+.section-label{font-size:12px;font-weight:700;letter-spacing:.15em;color:var(--accent);text-transform:uppercase;margin-bottom:14px;text-align:center;}
+.section-title{font-size:clamp(26px,4vw,44px);font-weight:800;text-align:center;margin-bottom:16px;}
+.section-sub{font-size:16px;color:var(--text2);text-align:center;max-width:500px;margin:0 auto 60px;}
+.feature-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;max-width:1100px;margin:0 auto;}
+.feature-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:20px;padding:32px;
+  transition:all .3s;cursor:default;
+  position:relative;overflow:hidden;
+}
+.feature-card::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at 30% 30%,rgba(245,166,35,.06),transparent 60%);
+  opacity:0;transition:.3s;
+}
+.feature-card:hover{transform:translateY(-6px);border-color:rgba(245,166,35,.25);box-shadow:0 20px 50px rgba(0,0,0,.4);}
+.feature-card:hover::before{opacity:1;}
+.fc-icon{
+  width:52px;height:52px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;margin-bottom:20px;
+}
+.fc-icon.orange{background:rgba(245,166,35,.15);color:var(--accent);}
+.fc-icon.blue{background:rgba(61,142,248,.15);color:var(--accent2);}
+.fc-icon.green{background:rgba(0,229,160,.15);color:var(--green);}
+.fc-icon.purple{background:rgba(168,85,247,.15);color:var(--purple);}
+.fc-icon.red{background:rgba(255,77,109,.15);color:var(--red);}
+.fc-icon.cyan{background:rgba(6,182,212,.15);color:#06b6d4;}
+.fc-title{font-size:18px;font-weight:700;margin-bottom:10px;font-family:'Syne',sans-serif;}
+.fc-desc{font-size:14px;color:var(--text2);line-height:1.65;}
+
+/* ─── HOW IT WORKS ─── */
+.how{position:relative;z-index:1;padding:80px 5%;background:linear-gradient(180deg,transparent,rgba(13,21,37,.5),transparent);}
+.steps{display:flex;gap:0;justify-content:center;max-width:900px;margin:0 auto;flex-wrap:wrap;}
+.step{flex:1;min-width:180px;text-align:center;padding:30px 20px;position:relative;}
+.step:not(:last-child)::after{content:'→';position:absolute;right:-15px;top:42px;font-size:24px;color:var(--border);}
+.step-num{
+  width:56px;height:56px;border-radius:50%;
+  background:linear-gradient(135deg,rgba(245,166,35,.2),rgba(61,142,248,.2));
+  border:2px solid rgba(245,166,35,.3);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;font-weight:800;color:var(--accent);
+  margin:0 auto 16px;font-family:'Syne',sans-serif;
+}
+.step-title{font-size:15px;font-weight:700;margin-bottom:8px;}
+.step-desc{font-size:13px;color:var(--text2);line-height:1.6;}
+
+/* ─── PLATFORMS ─── */
+.platforms{position:relative;z-index:1;padding:80px 5%;}
+.platform-logos{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;max-width:800px;margin:0 auto;}
+.plat-chip{
+  padding:10px 24px;border-radius:30px;
+  background:var(--card);border:1px solid var(--border);
+  font-size:14px;font-weight:600;color:var(--text2);
+  transition:.2s;
+}
+.plat-chip:hover{border-color:var(--accent2);color:var(--text);background:rgba(61,142,248,.08);}
+
+/* ─── CTA ─── */
+.cta{
+  position:relative;z-index:1;padding:100px 5%;text-align:center;
+}
+.cta-card{
+  max-width:700px;margin:0 auto;
+  background:linear-gradient(135deg,rgba(245,166,35,.1),rgba(61,142,248,.1));
+  border:1px solid rgba(245,166,35,.2);border-radius:28px;
+  padding:60px 40px;
+}
+.cta h2{font-size:clamp(24px,4vw,40px);font-weight:800;margin-bottom:16px;}
+.cta p{font-size:16px;color:var(--text2);margin-bottom:36px;}
+
+/* ─── FOOTER ─── */
+footer{
+  position:relative;z-index:1;
+  padding:40px 5%;border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;
+}
+.footer-left .logo{font-size:18px;}
+.footer-right{font-size:13px;color:var(--text2);}
+
+/* ─── AUTH MODAL ─── */
+.modal-overlay{
+  position:fixed;inset:0;z-index:500;
+  background:rgba(0,0,0,.7);backdrop-filter:blur(8px);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:.25s;
+}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.auth-modal{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:24px;padding:40px;width:100%;max-width:420px;
+  transform:scale(.95);transition:.25s;
+  position:relative;
+}
+.modal-overlay.open .auth-modal{transform:scale(1);}
+.modal-close{
+  position:absolute;top:16px;right:16px;
+  background:rgba(255,255,255,.05);border:1px solid var(--border);
+  color:var(--text2);width:32px;height:32px;border-radius:8px;
+  cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;
+  transition:.15s;
+}
+.modal-close:hover{color:var(--text);background:rgba(255,255,255,.1);}
+.auth-logo{text-align:center;font-size:28px;font-weight:800;color:var(--accent);font-family:'Syne',sans-serif;margin-bottom:6px;}
+.auth-sub{text-align:center;font-size:14px;color:var(--text2);margin-bottom:30px;}
+.auth-tabs{display:flex;background:rgba(255,255,255,.04);border-radius:10px;padding:4px;margin-bottom:28px;}
+.auth-tab{flex:1;padding:9px;text-align:center;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;color:var(--text2);transition:.2s;}
+.auth-tab.active{background:var(--accent);color:#fff;}
+.field{margin-bottom:18px;}
+.field label{display:block;font-size:13px;font-weight:600;color:var(--text2);margin-bottom:7px;}
+.field input{
+  width:100%;padding:11px 16px;border-radius:10px;
+  background:rgba(255,255,255,.04);border:1px solid var(--border);
+  color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;
+  transition:.2s;outline:none;
+}
+.field input:focus{border-color:var(--accent2);background:rgba(61,142,248,.05);}
+.auth-btn{
+  width:100%;padding:12px;border-radius:10px;
+  background:linear-gradient(135deg,#f5a623,#e8901a);
+  color:#fff;font-size:15px;font-weight:700;
+  border:none;cursor:pointer;font-family:'DM Sans',sans-serif;
+  transition:.2s;margin-top:4px;
+}
+.auth-btn:hover{opacity:.9;transform:translateY(-1px);}
+.auth-error{color:var(--red);font-size:13px;margin-top:10px;text-align:center;min-height:18px;}
+.auth-divider{text-align:center;color:var(--text2);font-size:12px;margin:20px 0;position:relative;}
+.auth-divider::before,.auth-divider::after{content:'';position:absolute;top:50%;width:42%;height:1px;background:var(--border);}
+.auth-divider::before{left:0;} .auth-divider::after{right:0;}
+
+/* ─── SWITCH ACCOUNT MODAL ─── */
+.switch-header{font-size:18px;font-weight:700;margin-bottom:6px;font-family:'Syne',sans-serif;}
+.switch-sub{font-size:13px;color:var(--text2);margin-bottom:24px;}
+.account-list{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
+.account-item{
+  display:flex;align-items:center;gap:14px;
+  padding:12px 16px;border-radius:12px;
+  background:rgba(255,255,255,.04);border:1px solid var(--border);
+  cursor:pointer;transition:.2s;
+}
+.account-item:hover{border-color:var(--accent2);background:rgba(61,142,248,.05);}
+.account-item.active-acc{border-color:var(--accent);background:rgba(245,166,35,.06);}
+.ai-info{flex:1;}
+.ai-name{font-size:14px;font-weight:600;}
+.ai-email{font-size:12px;color:var(--text2);}
+.ai-badge{font-size:10px;padding:2px 8px;border-radius:20px;background:rgba(245,166,35,.15);color:var(--accent);font-weight:700;}
+
+/* ─── ANIMATIONS ─── */
+@keyframes fadeDown{from{opacity:0;transform:translateY(-20px);}to{opacity:1;transform:translateY(0);}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-12px);}}
+@keyframes pulse-glow{0%,100%{box-shadow:0 0 0 0 rgba(245,166,35,0);}50%{box-shadow:0 0 30px 10px rgba(245,166,35,.15);}}
+
+.scroll-reveal{opacity:0;transform:translateY(30px);transition:opacity .7s ease,transform .7s ease;}
+.scroll-reveal.visible{opacity:1;transform:translateY(0);}
+
+/* ─── LAPTOP 3D CSS ─── */
+.laptop-float{
+  position:absolute;
+  animation:float 4s ease-in-out infinite;
+}
+.laptop-svg{filter:drop-shadow(0 20px 40px rgba(61,142,248,.3));}
+</style>
+</head>
+<body>
+
+<canvas id="bgCanvas"></canvas>
+
+<!-- AUTH MODAL -->
+<div class="modal-overlay" id="authModal">
+  <div class="auth-modal">
+    <button class="modal-close" onclick="closeAuthModal()"><i class="fa fa-times"></i></button>
+    <div class="auth-logo">💻 LaptopPredict</div>
+    <div class="auth-sub">AI-powered laptop price intelligence</div>
+    <div class="auth-tabs">
+      <div class="auth-tab active" id="loginTab" onclick="switchAuthTab('login')">Login</div>
+      <div class="auth-tab" id="registerTab" onclick="switchAuthTab('register')">Register</div>
+    </div>
+    <!-- LOGIN FORM -->
+    <div id="loginForm">
+      <div class="field">
+        <label>Username or Email</label>
+        <input type="text" id="loginId" placeholder="Enter username or email" autocomplete="username">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="loginPwd" placeholder="Enter password" autocomplete="current-password">
+      </div>
+      <button class="auth-btn" onclick="doLogin()">Login <i class="fa fa-arrow-right"></i></button>
+    </div>
+    <!-- REGISTER FORM -->
+    <div id="registerForm" style="display:none">
+      <div class="field">
+        <label>Username</label>
+        <input type="text" id="regUsername" placeholder="Choose a username">
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="regEmail" placeholder="Enter your email">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="regPwd" placeholder="Min 6 characters">
+      </div>
+      <button class="auth-btn" onclick="doRegister()">Create Account <i class="fa fa-user-plus"></i></button>
+    </div>
+    <div class="auth-error" id="authError"></div>
+  </div>
+</div>
+
+<!-- SWITCH ACCOUNT MODAL -->
+<div class="modal-overlay" id="switchModal">
+  <div class="auth-modal">
+    <button class="modal-close" onclick="document.getElementById('switchModal').classList.remove('open')"><i class="fa fa-times"></i></button>
+    <div class="switch-header">Switch Account</div>
+    <div class="switch-sub">Select an account or add a new one</div>
+    <div class="account-list" id="accountList"></div>
+    <button class="btn btn-outline" style="width:100%;justify-content:center;" onclick="addAnotherAccount()">
+      <i class="fa fa-plus"></i> Add Another Account
+    </button>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="nav" id="mainNav">
+  <div class="logo">💻 Laptop<span>Predict</span></div>
+  <ul class="nav-links">
+    <li><a href="/app"><i class="fa fa-search"></i> Search</a></li>
+    <li><a href="/build"><i class="fa fa-sliders-h"></i> Build</a></li>
+    <li><a href="/cpu-compare"><i class="fa fa-microchip"></i> CPU Compare</a></li>
+  </ul>
+  <div class="nav-right" id="navRight">
+    <!-- JS fills this -->
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div>
+    <div class="hero-badge">🤖 AI + ML Powered Price Intelligence</div>
+    <h1>Find Your <span class="gradient-text">Perfect Laptop</span><br>At The Best Price</h1>
+    <p>Compare real-time prices across 6+ platforms. ML predicts fair market value. Beat overpriced listings every time.</p>
+    <div class="hero-btns">
+      <a href="/app" class="btn btn-primary"><i class="fa fa-search"></i> Search Laptops</a>
+      <a href="#features" class="btn btn-ghost"><i class="fa fa-play-circle"></i> How It Works</a>
+    </div>
+    <div class="hero-stats">
+      <div class="hs"><div class="hs-num" id="statPlatforms">6+</div><div class="hs-label">Platforms</div></div>
+      <div class="hs-divider"></div>
+      <div class="hs"><div class="hs-num">ML</div><div class="hs-label">Price AI</div></div>
+      <div class="hs-divider"></div>
+      <div class="hs"><div class="hs-num">Live</div><div class="hs-label">Prices</div></div>
+      <div class="hs-divider"></div>
+      <div class="hs"><div class="hs-num">Free</div><div class="hs-label">Forever</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="scroll-reveal">
+    <div class="section-label">Features</div>
+    <h2 class="section-title">Everything You Need to Buy Smart</h2>
+    <p class="section-sub">Powerful tools to compare, predict, and save on your next laptop.</p>
+  </div>
+  <div class="feature-grid scroll-reveal">
+    <div class="feature-card">
+      <div class="fc-icon orange"><i class="fa fa-brain"></i></div>
+      <div class="fc-title">ML Price Prediction</div>
+      <div class="fc-desc">Our machine learning model analyzes thousands of listings to predict the fair market price of any laptop configuration.</div>
+    </div>
+    <div class="feature-card">
+      <div class="fc-icon blue"><i class="fa fa-search"></i></div>
+      <div class="fc-title">Real-Time Search</div>
+      <div class="fc-desc">Instantly fetch live prices from Amazon, Flipkart, Croma, Cashify, Reliance Digital and more with a single search.</div>
+    </div>
+    <div class="feature-card">
+      <div class="fc-icon green"><i class="fa fa-fire"></i></div>
+      <div class="fc-title">Hot Deal Detector</div>
+      <div class="fc-desc">Automatically flags listings priced significantly below market value so you never miss a great deal.</div>
+    </div>
+    <div class="feature-card">
+      <div class="fc-icon purple"><i class="fa fa-microchip"></i></div>
+      <div class="fc-title">CPU Comparison</div>
+      <div class="fc-desc">Compare any two processors side-by-side across performance, multi-core, gaming, AI, and power efficiency scores.</div>
+    </div>
+    <div class="feature-card">
+      <div class="fc-icon red"><i class="fa fa-heart"></i></div>
+      <div class="fc-title">Wishlist</div>
+      <div class="fc-desc">Save laptops you're interested in and track their prices over time. Never lose a product you love.</div>
+    </div>
+    <div class="feature-card">
+      <div class="fc-icon cyan"><i class="fa fa-sliders-h"></i></div>
+      <div class="fc-title">Build & Estimate</div>
+      <div class="fc-desc">Configure your dream laptop spec-by-spec and get an estimated price range before you start shopping.</div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how scroll-reveal" id="how">
+  <div class="section-label">Process</div>
+  <h2 class="section-title">How It Works</h2>
+  <p class="section-sub" style="text-align:center;max-width:500px;margin:0 auto 48px;color:var(--text2);">Three simple steps to your best laptop deal</p>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-title">Set Your Specs</div>
+      <div class="step-desc">Choose CPU brand, generation, RAM, storage, GPU and budget preferences.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-title">AI Fetches Results</div>
+      <div class="step-desc">We search 6+ platforms simultaneously and run ML price analysis on every result.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-title">Buy Confidently</div>
+      <div class="step-desc">See which deals are hot, which are overpriced, and get our top recommendations.</div>
+    </div>
+  </div>
+</section>
+
+<!-- PLATFORMS -->
+<section class="platforms scroll-reveal">
+  <div class="section-label">Coverage</div>
+  <h2 class="section-title">Platforms We Cover</h2>
+  <p class="section-sub" style="text-align:center;max-width:500px;margin:0 auto 40px;color:var(--text2);">Real-time price data from all major Indian e-commerce platforms</p>
+  <div class="platform-logos">
+    <div class="plat-chip">🛒 Amazon India</div>
+    <div class="plat-chip">🔵 Flipkart</div>
+    <div class="plat-chip">🟠 Croma</div>
+    <div class="plat-chip">♻️ Cashify</div>
+    <div class="plat-chip">📱 Reliance Digital</div>
+    <div class="plat-chip">🌐 GadgetNow</div>
+    <div class="plat-chip">🔄 Swappa</div>
+    <div class="plat-chip">🛍️ eBay</div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta scroll-reveal">
+  <div class="cta-card">
+    <h2>Ready to Find Your Perfect Laptop?</h2>
+    <p>Join thousands of smart buyers using AI to get the best price.</p>
+    <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
+      <a href="/app" class="btn btn-primary"><i class="fa fa-rocket"></i> Start Searching Free</a>
+      <button class="btn btn-outline" onclick="openAuthModal('register')"><i class="fa fa-user-plus"></i> Create Account</button>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-left">
+    <div class="logo">💻 Laptop<span>Predict</span></div>
+    <div style="font-size:12px;color:var(--text2);margin-top:4px;">AI-powered laptop price intelligence</div>
+  </div>
+  <div class="footer-right">Made with ❤️ for smart laptop buyers • LaptopPredict v2.0</div>
+</footer>
+
+<script>
+// ─── 3D PARTICLE CANVAS ───
+const canvas = document.getElementById('bgCanvas');
+const ctx = canvas.getContext('2d');
+let W, H, particles = [], lines = [];
+
+function resize() {
+  W = canvas.width  = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+class Particle {
+  constructor() { this.reset(); }
+  reset() {
+    this.x = Math.random() * W;
+    this.y = Math.random() * H;
+    this.vx = (Math.random() - .5) * .4;
+    this.vy = (Math.random() - .5) * .4;
+    this.r = Math.random() * 2 + .5;
+    this.alpha = Math.random() * .5 + .1;
+    this.color = ['#f5a623','#3d8ef8','#00e5a0','#a855f7'][Math.floor(Math.random()*4)];
+  }
+  update() {
+    this.x += this.vx; this.y += this.vy;
+    if (this.x<0||this.x>W||this.y<0||this.y>H) this.reset();
+  }
+  draw() {
+    ctx.beginPath();
+    ctx.arc(this.x,this.y,this.r,0,Math.PI*2);
+    ctx.fillStyle = this.color;
+    ctx.globalAlpha = this.alpha;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+}
+
+for (let i=0;i<120;i++) particles.push(new Particle());
+
+function drawConnections() {
+  for (let i=0;i<particles.length;i++) {
+    for (let j=i+1;j<particles.length;j++) {
+      const dx = particles[i].x-particles[j].x;
+      const dy = particles[i].y-particles[j].y;
+      const d = Math.sqrt(dx*dx+dy*dy);
+      if (d < 100) {
+        ctx.beginPath();
+        ctx.moveTo(particles[i].x,particles[i].y);
+        ctx.lineTo(particles[j].x,particles[j].y);
+        ctx.strokeStyle = '#1a2840';
+        ctx.globalAlpha = (1-d/100)*.4;
+        ctx.lineWidth = .5;
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+    }
+  }
+}
+
+function animBG() {
+  ctx.clearRect(0,0,W,H);
+  drawConnections();
+  particles.forEach(p => { p.update(); p.draw(); });
+  requestAnimationFrame(animBG);
+}
+animBG();
+
+// ─── AUTH STATE ───
+let currentUser = null;
+let savedAccounts = JSON.parse(localStorage.getItem('lp_accounts') || '[]');
+
+function loadUser() {
+  const token = localStorage.getItem('lp_token');
+  if (!token) return renderNav(null);
+  fetch('/auth/me', { headers: { 'Authorization': 'Bearer ' + token } })
+    .then(r => r.json())
+    .then(d => {
+      if (d.error) { localStorage.removeItem('lp_token'); renderNav(null); }
+      else { currentUser = d; renderNav(d); }
+    }).catch(() => renderNav(null));
+}
+
+function renderNav(user) {
+  const nr = document.getElementById('navRight');
+  if (!user) {
+    nr.innerHTML = `
+      <button class="btn btn-ghost" onclick="openAuthModal('login')">Login</button>
+      <button class="btn btn-primary" onclick="openAuthModal('register')">Sign Up</button>`;
+  } else {
+    const initials = user.username.substring(0,2).toUpperCase();
+    const savedHtml = savedAccounts.filter(a=>a.username!==user.username).map(a=>`
+      <div class="saved-account" onclick="switchToAccount('${a.username}','${a.token}')">
+        <div class="user-avatar" style="background:${a.color||'#f5a623'};width:28px;height:28px;font-size:11px;">
+          ${a.username.substring(0,2).toUpperCase()}
+        </div>
+        <div><div class="sa-name">${a.username}</div><div class="sa-email">${a.email||''}</div></div>
+      </div>`).join('');
+    nr.innerHTML = `
+      <div class="user-pill">
+        <div class="user-avatar" style="background:${user.avatar_color||'#f5a623'}">${initials}</div>
+        <span class="user-pill-name">${user.username}</span>
+        <i class="fa fa-chevron-down" style="font-size:10px;color:var(--text2);margin-left:2px;"></i>
+        <div class="user-dropdown">
+          <div class="ud-header">
+            <div class="ud-name">${user.username}</div>
+            <div class="ud-email">${user.email||''}</div>
+          </div>
+          <div class="ud-item" onclick="location.href='/app'"><i class="fa fa-search"></i> Search Laptops</div>
+          <div class="ud-item" onclick="location.href='/wishlist-page'"><i class="fa fa-heart"></i> My Wishlist</div>
+          <div class="ud-item" onclick="location.href='/history-page'"><i class="fa fa-history"></i> Search History</div>
+          <div class="ud-sep"></div>
+          ${savedAccounts.filter(a=>a.username!==user.username).length>0 ? `
+          <div class="ud-switch">Switch Account</div>
+          ${savedHtml}
+          <div class="ud-sep"></div>` : ''}
+          <div class="ud-item" onclick="openSwitchModal()"><i class="fa fa-exchange-alt"></i> Switch Account</div>
+          <div class="ud-item" onclick="doLogout()" style="color:var(--red)"><i class="fa fa-sign-out-alt"></i> Logout</div>
+        </div>
+      </div>`;
+  }
+}
+
+function openAuthModal(tab='login') {
+  switchAuthTab(tab);
+  document.getElementById('authModal').classList.add('open');
+}
+function closeAuthModal() {
+  document.getElementById('authModal').classList.remove('open');
+  document.getElementById('authError').textContent='';
+}
+
+function switchAuthTab(tab) {
+  document.getElementById('loginTab').classList.toggle('active', tab==='login');
+  document.getElementById('registerTab').classList.toggle('active', tab==='register');
+  document.getElementById('loginForm').style.display = tab==='login' ? 'block':'none';
+  document.getElementById('registerForm').style.display = tab==='register' ? 'block':'none';
+  document.getElementById('authError').textContent='';
+}
+
+async function doLogin() {
+  const id  = document.getElementById('loginId').value.trim();
+  const pwd = document.getElementById('loginPwd').value;
+  if (!id||!pwd) { showAuthErr('Please fill all fields'); return; }
+  try {
+    const r = await fetch('/auth/login', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ identifier: id, password: pwd })
+    });
+    const d = await r.json();
+    if (d.error) { showAuthErr(d.error); return; }
+    saveSession(d);
+    closeAuthModal();
+    location.reload();
+  } catch(e) { showAuthErr('Connection error. Is the server running?'); }
+}
+
+async function doRegister() {
+  const username = document.getElementById('regUsername').value.trim();
+  const email    = document.getElementById('regEmail').value.trim();
+  const pwd      = document.getElementById('regPwd').value;
+  if (!username||!email||!pwd) { showAuthErr('Please fill all fields'); return; }
+  try {
+    const r = await fetch('/auth/register', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ username, email, password: pwd })
+    });
+    const d = await r.json();
+    if (d.error) { showAuthErr(d.error); return; }
+    saveSession(d);
+    closeAuthModal();
+    location.reload();
+  } catch(e) { showAuthErr('Connection error. Is the server running?'); }
+}
+
+function saveSession(data) {
+  localStorage.setItem('lp_token', data.token);
+  // Save to accounts list for switch account
+  const existing = savedAccounts.findIndex(a => a.username === data.username);
+  const acc = { username: data.username, email: data.email, color: data.avatar_color, token: data.token };
+  if (existing >= 0) savedAccounts[existing] = acc;
+  else savedAccounts.push(acc);
+  localStorage.setItem('lp_accounts', JSON.stringify(savedAccounts));
+}
+
+async function doLogout() {
+  const token = localStorage.getItem('lp_token');
+  await fetch('/auth/logout', { method:'POST', headers:{'Authorization':'Bearer '+token} }).catch(()=>{});
+  // Remove from saved accounts
+  savedAccounts = savedAccounts.filter(a => a.token !== token);
+  localStorage.setItem('lp_accounts', JSON.stringify(savedAccounts));
+  localStorage.removeItem('lp_token');
+  currentUser = null;
+  renderNav(null);
+}
+
+function openSwitchModal() {
+  const list = document.getElementById('accountList');
+  const token = localStorage.getItem('lp_token');
+  list.innerHTML = savedAccounts.map(a => `
+    <div class="account-item ${a.token===token?'active-acc':''}" onclick="switchToAccount('${a.username}','${a.token}')">
+      <div class="user-avatar" style="background:${a.color||'#f5a623'};width:38px;height:38px;">${a.username.substring(0,2).toUpperCase()}</div>
+      <div class="ai-info">
+        <div class="ai-name">${a.username}</div>
+        <div class="ai-email">${a.email||''}</div>
+      </div>
+      ${a.token===token ? '<span class="ai-badge">Active</span>' : ''}
+    </div>`).join('') || '<div style="color:var(--text2);font-size:13px;text-align:center;padding:20px;">No saved accounts</div>';
+  document.getElementById('switchModal').classList.add('open');
+}
+
+function switchToAccount(username, token) {
+  localStorage.setItem('lp_token', token);
+  document.getElementById('switchModal').classList.remove('open');
+  location.reload();
+}
+
+function addAnotherAccount() {
+  document.getElementById('switchModal').classList.remove('open');
+  openAuthModal('login');
+}
+
+function showAuthErr(msg) { document.getElementById('authError').textContent = msg; }
+
+// ─── ENTER KEY ───
+document.addEventListener('keydown', e => {
+  if (e.key==='Enter') {
+    if (document.getElementById('loginForm').style.display!=='none') doLogin();
+    else doRegister();
+  }
+  if (e.key==='Escape') {
+    closeAuthModal();
+    document.getElementById('switchModal').classList.remove('open');
+  }
+});
+
+// ─── CLOSE MODAL ON OVERLAY CLICK ───
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if(e.target===m) { closeAuthModal(); m.classList.remove('open'); } });
+});
+
+// ─── SCROLL REVEAL ───
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) { e.target.classList.add('visible'); } });
+}, { threshold: 0.1 });
+document.querySelectorAll('.scroll-reveal').forEach(el => observer.observe(el));
+
+// ─── COUNTER ANIMATION ───
+function animateCounter(el, target, suffix='') {
+  let current = 0;
+  const step = target / 60;
+  const timer = setInterval(() => {
+    current += step;
+    if (current >= target) { current = target; clearInterval(timer); }
+    el.textContent = Math.floor(current) + suffix;
+  }, 16);
+}
+
+loadUser();
+</script>
+</body>
+</html>

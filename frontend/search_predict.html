@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LaptopPredict — Search & Predict</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="_shared.js"></script>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a href="/" style="text-decoration:none;"><div class="logo">💻 Laptop<span>Predict</span></div></a>
+  <ul class="nav-links">
+    <li><a onclick="showTab('search')" style="cursor:pointer"><i class="fa fa-search"></i> Search & Predict</a></li>
+    <li><a onclick="showTab('build')" style="cursor:pointer"><i class="fa fa-sliders-h"></i> Build & Estimate</a></li>
+    <li><a onclick="showTab('history')" style="cursor:pointer"><i class="fa fa-history"></i> History</a></li>
+    <li><a onclick="showTab('wishlist')" style="cursor:pointer"><i class="fa fa-heart"></i> Wishlist</a></li>
+    <li><a onclick="showTab('CPU Comparison')" style="cursor:pointer"><i class="fa fa-microchip"></i> CPU Compare</a></li>
+  </ul>
+  <div class="nav-right" id="navUserSection">
+    <button class="wishlist-btn" onclick="showTab('wishlist')">
+      <i class="fa fa-heart"></i> Wishlist <span class="wishlist-count" id="wishlistCount">0</span>
+    </button>
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle Theme">☀️</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-content">
+    <h1>Find Your Perfect Laptop<br><span>Price Intelligence</span></h1>
+    <p>Compare real-time prices • ML predictions • Demand analysis</p>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-num">6+</div><div class="stat-label">Platforms</div></div>
+      <div class="stat"><div class="stat-num">ML</div><div class="stat-label">Powered</div></div>
+      <div class="stat"><div class="stat-num">Live</div><div class="stat-label">Prices</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- TAB BAR -->
+<div class="tab-bar">
+  <div class="tab active" onclick="showTab('search')"><i class="fa fa-search"></i> Search & Predict</div>
+  <div class="tab" onclick="showTab('build')"><i class="fa fa-sliders-h"></i> Build & Estimate</div>
+  <div class="tab" onclick="showTab('history')"><i class="fa fa-history"></i> History</div>
+  <div class="tab" onclick="showTab('wishlist')"><i class="fa fa-heart"></i> Wishlist</div>
+  <div class="tab" onclick="showTab('CPU Comparison')"><i class="fa fa-microchip"></i> CPU Compare</div>
+</div>
+
+<!-- LOADING OVERLAY -->
+<div class="load-ov" id="loadOv">
+  <div class="spinner"></div>
+  <div class="load-steps">
+    <div class="lstep cur" id="ls1"><i class="fa fa-search"></i> Building search query...</div>
+    <div class="lstep" id="ls2"><i class="fa fa-cloud-download-alt"></i> Fetching live prices...</div>
+    <div class="lstep" id="ls3"><i class="fa fa-brain"></i> Running ML predictions...</div>
+    <div class="lstep" id="ls4"><i class="fa fa-star"></i> Generating recommendations...</div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- COMPARE BAR -->
+<div class="cmp-bar" id="cmpBar">
+  <span style="font-size:13px;font-weight:700;white-space:nowrap;font-family:'Syne',sans-serif;">Compare:</span>
+  <div class="cmp-slots" id="cmpSlots"></div>
+  <button class="btn-cmp" onclick="openCmpModal()"><i class="fa fa-columns"></i> Compare</button>
+  <button class="btn-clr" onclick="clearCmp()">Clear</button>
+</div>
+
+<!-- COMPARE MODAL -->
+<div class="overlay" id="cmpModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">📊 Side-by-Side Comparison</div>
+      <button class="modal-x" onclick="document.getElementById('cmpModal').classList.remove('open')">✕</button>
+    </div>
+    <div id="cmpTableWrap"></div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="page-wrap">
+  <div class="page-title">🔍 Search & Predict Laptop Prices</div>
+
+  <div class="form-card">
+    <div class="form-grid">
+      <div class="fg">
+        <label><i class="fa fa-microchip"></i> CPU Brand</label>
+        <select id="cpuBrand" onchange="onCpuBrand()">
+          <option value="Any">Any Brand</option>
+          <option value="Intel">Intel</option>
+          <option value="AMD">AMD</option>
+          <option value="Apple">Apple</option>
+          <option value="Qualcomm">Qualcomm</option>
+        </select>
+      </div>
+      <div class="fg"><label><i class="fa fa-layer-group"></i> Generation</label><select id="generation"></select></div>
+      <div class="fg"><label><i class="fa fa-cpu"></i> CPU Model</label><select id="cpuModel"></select></div>
+      <div class="fg">
+        <label><i class="fa fa-laptop"></i> Laptop Brand</label>
+        <select id="brand">
+          <option value="Any">Any Brand</option>
+          <option value="HP">HP</option>
+          <option value="Dell">Dell</option>
+          <option value="Lenovo">Lenovo</option>
+          <option value="ASUS">ASUS</option>
+          <option value="Acer">Acer</option>
+          <option value="Samsung">Samsung</option>
+          <option value="MSI">MSI</option>
+          <option value="Apple">Apple</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label><i class="fa fa-gamepad"></i> GPU Brand</label>
+        <select id="gpuBrand" onchange="onGpuBrand()">
+          <option value="Any">Any</option>
+          <option value="NVIDIA">NVIDIA</option>
+          <option value="AMD">AMD</option>
+          <option value="Intel">Intel</option>
+          <option value="Apple">Apple</option>
+        </select>
+      </div>
+      <div class="fg"><label><i class="fa fa-tv"></i> GPU Model</label><select id="gpuModel"></select></div>
+      <div class="fg">
+        <label><i class="fa fa-memory"></i> RAM Type</label>
+        <select id="ramType" onchange="onRamType()">
+          <option value="Any">Any</option>
+          <option value="DDR5">DDR5</option>
+          <option value="DDR4">DDR4</option>
+          <option value="DDR3">DDR3</option>
+        </select>
+      </div>
+      <div class="fg"><label><i class="fa fa-database"></i> RAM Size</label><select id="ramSize"></select></div>
+      <div class="fg">
+        <label><i class="fa fa-hdd"></i> Storage Type</label>
+        <select id="storageType" onchange="onStorageType()">
+          <option value="Any">Any</option>
+          <option value="SSD">SSD</option>
+          <option value="HDD">HDD</option>
+        </select>
+      </div>
+      <div class="fg"><label><i class="fa fa-database"></i> Storage Size</label><select id="storageSize"></select></div>
+      <div class="fg"><label><i class="fa fa-expand-arrows-alt"></i> Display (inches)</label>
+        <input id="displaySize" type="number" step="0.1" value="15.6" min="11" max="18">
+      </div>
+      <div class="fg">
+        <label><i class="fa fa-rupee-sign"></i> Max Budget: <span class="bval" id="budgetVal">₹70,000</span></label>
+        <div class="budget-wrap">
+          <div class="budget-labels"><span>₹20K</span><span>₹5L</span></div>
+          <input type="range" id="budgetRange" min="20000" max="500000" step="5000" value="70000" oninput="syncBudget(this)">
+          <input type="number" id="budgetNum" value="70000" min="20000" max="500000" step="5000" oninput="syncBudgetNum(this)" style="margin-top:6px;">
+        </div>
+      </div>
+    </div>
+    <div class="form-divider"></div>
+    <button class="btn-primary" id="searchBtn" onclick="doSearch()">
+      <i class="fa fa-search"></i> Search & Predict with AI
+    </button>
+  </div>
+
+  <!-- ML INSIGHT -->
+  <div class="ml-box" id="mlBox">
+    <div class="ml-icon">🤖</div>
+    <div class="ml-txt"><h4>ML Analysis Summary</h4><p id="mlTxt"></p></div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="resultsWrap" style="display:none;margin-top:22px;">
+    <div class="toolbar">
+      <span class="res-count" id="resCount">0 results</span>
+      <div class="tb-right">
+        <button class="btn-sec" onclick="exportCSV()" title="Export to CSV" style="padding:6px 12px;font-size:12px;">
+          <i class="fa fa-download"></i> CSV
+        </button>
+        <button class="btn-sec" onclick="shareResults()" title="Share" style="padding:6px 12px;font-size:12px;">
+          <i class="fa fa-share-alt"></i>
+        </button>
+        <button class="btn-sec" onclick="toggleAlertsPanel()" id="alertsBtn" title="Price Alerts" style="padding:6px 12px;font-size:12px;position:relative;">
+          🔔 <span id="alertsBadge" style="background:var(--accent);color:#fff;border-radius:10px;padding:1px 5px;font-size:10px;font-weight:700;display:none;">0</span>
+        </button>
+        <span class="chip active" onclick="filterCards('all',this)">All</span>
+        <span class="chip" onclick="filterCards('hot',this)">🔥 Hot Deals</span>
+        <span class="chip" onclick="filterCards('budget',this)">💰 Under ₹60K</span>
+        <span class="chip" onclick="filterCards('under40',this)">🎯 Under ₹40K</span>
+        <span class="chip" onclick="filterCards('premium',this)">💎 Premium ₹1L+</span>
+        <span class="chip" onclick="filterCards('predicted_good',this)">🤖 AI Picks</span>
+        <select class="sort-sel" id="sortSel" onchange="sortCards()">
+          <option value="def">Sort: Default</option>
+          <option value="asc">Price Low→High</option>
+          <option value="desc">Price High→Low</option>
+          <option value="deal">Best Deal</option>
+        </select>
+      </div>
+    </div>
+    <div class="card-grid" id="resultGrid"></div>
+  </div>
+
+  <!-- CHART -->
+  <div class="chart-card" id="chartCard">
+    <h3>📊 Price Distribution — Actual vs ML Predicted</h3>
+    <canvas id="priceChart"></canvas>
+  </div>
+
+  <!-- RECOMMENDATIONS -->
+  <div id="recWrap" style="display:none;margin-top:26px;">
+    <div style="font-size:18px;font-weight:700;margin-bottom:16px;font-family:'Syne',sans-serif;display:flex;align-items:center;gap:8px;">
+      <span style="width:3px;height:18px;background:var(--accent);border-radius:2px;display:inline-block;"></span>
+      🤖 AI Recommended for You
+    </div>
+    <div class="card-grid" id="recGrid"></div>
+  </div>
+</div>
+
+<!-- PRICE ALERTS PANEL -->
+<div id="alertsPanel" style="display:none;margin-top:24px;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+    <h3 style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;">🔔 Price Alerts</h3>
+    <button onclick="clearAllAlerts()" style="padding:7px 14px;border-radius:8px;background:rgba(255,77,109,.1);border:1px solid rgba(255,77,109,.3);color:var(--red);cursor:pointer;font-size:13px;">Clear All</button>
+  </div>
+  <div id="alertsList"></div>
+</div>
+
+<footer>© 2026 LaptopPredict — AI Price Intelligence</footer>
+
+<script>
+
+// ── LOCAL mkCard override — original p-card style for search results ──
+function mkCard(it, idx, ctx) {
+  const pv    = it.price_value || 0;
+  const pstr  = it.price || (pv ? '₹' + pv.toLocaleString('en-IN') : 'N/A');
+  const pred  = it.predicted_price;
+  const deal  = it.deal;
+  const img   = it.image  || '';
+  const title = it.title  || 'Laptop';
+  const plat  = it.platform || '';
+  const link  = it.link   || '#';
+  const rat   = it.rating || '';
+  const ram   = it.ram || '';
+  const stor  = it.storage || '';
+  const ramT  = it.ram_type || '';
+  const storT = it.storage_type || '';
+  const specs = it.specs  || it.specs_summary || '';
+
+  // Deal badge + card border class
+  let dealCls = '', dealBadge = '';
+  if (deal) {
+    const lbl = deal.label || '';
+    if (lbl.includes('Hot'))        { dealCls = 'hot';  dealBadge = `<div class="deal deal-hot">🔥 ${lbl}</div>`; }
+    else if (lbl.includes('Good'))  { dealCls = 'good'; dealBadge = `<div class="deal deal-good">✅ ${lbl}</div>`; }
+    else if (lbl.includes('Over') || lbl.includes('High')) { dealBadge = `<div class="deal deal-over">⚠️ ${lbl}</div>`; }
+    else                            { dealBadge = `<div class="deal deal-fair">${lbl}</div>`; }
+  }
+
+  // Spec tags
+  const tags = [ram && `${ram}${ramT ? ' '+ramT : ''} RAM`, stor && `${stor}GB ${storT||''}`, plat]
+    .filter(Boolean).map(t => `<span class="stag">${t}</span>`).join('');
+
+  // Predicted price row
+  let predRow = '';
+  if (pred && pred > 0) {
+    const diff = Math.round(((pv - pred) / pred) * 100);
+    const sign = diff > 0 ? '+' : '';
+    const col  = diff <= -10 ? 'var(--green)' : diff >= 15 ? 'var(--red)' : 'var(--text3)';
+    predRow = `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+      <span style="font-size:10px;color:var(--text3);">ML Fair:</span>
+      <span style="font-size:13px;font-weight:700;color:var(--accent);">₹${pred.toLocaleString('en-IN')}</span>
+      <span style="font-size:11px;font-weight:700;color:${col};">(${sign}${diff}%)</span>
+    </div>`;
+  }
+
+  // 52-week range
+  const w52 = w52Html(pv);
+
+  // Wishlist state
+  const wl    = JSON.parse(localStorage.getItem('lp_wish') || '[]');
+  const saved = wl.some(w => w.link === link);
+  const heartCls = saved ? 'on' : '';
+
+  // Compare checkbox (only in search context)
+  const cmpChk = ctx === 'search'
+    ? `<input type="checkbox" class="card-cmp" title="Compare" onchange="toggleCmp(event,${idx})">`
+    : '';
+
+  return `
+  <div class="p-card${dealCls ? ' p-card-'+dealCls : ''}" style="${dealCls==='hot'?'border-color:rgba(0,229,160,.4);':dealCls==='good'?'border-color:rgba(245,166,35,.3);':''}">
+    <div class="card-img">
+      <span class="ptag">${plat||'Online'}</span>
+      ${img ? `<img src="${img}" alt="${title}" loading="lazy" onerror="this.style.display='none'">` : '<div style="height:148px;display:flex;align-items:center;justify-content:center;"><i class="fa fa-laptop" style="font-size:48px;color:var(--border2)"></i></div>'}
+      <div class="card-wish ${heartCls}" onclick="toggleWish(${idx})" title="Save to wishlist">
+        ${saved ? '❤️' : '🤍'}
+      </div>
+      ${cmpChk}
+    </div>
+    <div class="card-body">
+      <div class="card-title">${title}</div>
+      <div class="stags">${tags}</div>
+      ${rat ? `<div style="font-size:12px;color:var(--accent);">⭐ ${rat}</div>` : ''}
+      ${dealBadge}
+      <div class="card-foot">
+        <div>
+          <div class="price-big">${pstr}</div>
+          ${predRow}
+          ${w52}
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:10px;">
+        <a href="${link}" target="_blank" rel="noopener" style="
+          flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
+          padding:9px;border-radius:8px;
+          background:var(--accent2);color:#fff;text-decoration:none;
+          font-size:13px;font-weight:700;transition:.2s;
+        " onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+          View Deal <i class="fa fa-external-link-alt"></i>
+        </a>
+        ${ctx === 'search' ? `<button onclick="setPriceAlert(${idx})" title="Set Price Alert" style="
+          padding:9px 11px;border-radius:8px;border:1px solid var(--border);
+          background:var(--bg3);color:var(--text2);cursor:pointer;font-size:14px;transition:.2s;
+        " onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">🔔</button>` : ''}
+      </div>
+    </div>
+  </div>`;
+}
+
+const GEN  = {Any:['Any'],Intel:['14th Gen','13th Gen','12th Gen','11th Gen','10th Gen'],AMD:['Ryzen 8000','Ryzen 7000','Ryzen 6000','Ryzen 5000'],Apple:['M5','M4','M3','M2','M1'],Qualcomm:['Any']};
+const CPU  = {Any:['Any'],Intel:['Intel Core i9','Intel Core i7','Intel Core i5','Intel Core i3','Intel Core Ultra 9','Intel Core Ultra 7','Intel Core Ultra 5'],AMD:['AMD Ryzen 9','AMD Ryzen 7','AMD Ryzen 5','AMD Ryzen 3','AMD Ryzen AI 9 HX'],Apple:['Apple M5 Max','Apple M5 Pro','Apple M4','Apple M3','Apple M2','Apple M1'],Qualcomm:['Snapdragon X Elite','Snapdragon X Plus']};
+const GPU  = {Any:['Any'],NVIDIA:['RTX 5090','RTX 4090','RTX 4080 Super','RTX 4070 Super','RTX 4060 Ti','RTX 4060 Laptop','RTX 4050 Laptop','RTX 3080','RTX 3070','RTX 3060','RTX 3050'],AMD:['RX 9070 XT','RX 7900 XTX','RX 7800 XT','RX 7600'],Intel:['Iris Xe','Arc B580','Arc A770','Arc Integrated'],Apple:['M4 GPU','M3 GPU','M2 GPU','M1 GPU']};
+const RAM  = {Any:['Any'],DDR5:['8 GB','16 GB','32 GB','64 GB','128 GB'],DDR4:['8 GB','16 GB','32 GB','64 GB'],DDR3:['8 GB','16 GB','32 GB']};
+const STOR = {Any:['Any'],SSD:['128 GB','256 GB','512 GB','1 TB','2 TB'],HDD:['256 GB','512 GB','1 TB','2 TB','4 TB']};
+
+let allResults = [], compareList = [], priceChart = null;
+window._cards = allResults;
+
+function fillSel(id, arr) { document.getElementById(id).innerHTML = arr.map(o => '<option value="' + o + '">' + o + '</option>').join(''); }
+function onCpuBrand()    { const b = document.getElementById('cpuBrand').value; fillSel('generation', GEN[b]||['Any']); fillSel('cpuModel', CPU[b]||['Any']); }
+function onGpuBrand()    { fillSel('gpuModel', GPU[document.getElementById('gpuBrand').value]||['Any']); }
+function onRamType()     { fillSel('ramSize', RAM[document.getElementById('ramType').value]||['Any']); }
+function onStorageType() { fillSel('storageSize', STOR[document.getElementById('storageType').value]||['Any']); }
+
+function syncBudget(el) {
+  const v = parseInt(el.value);
+  const p = ((v - 20000) / (500000 - 20000) * 100).toFixed(1);
+  el.style.setProperty('--pct', p + '%');
+  document.getElementById('budgetVal').textContent = '₹' + v.toLocaleString('en-IN');
+  document.getElementById('budgetNum').value = v;
+}
+function syncBudgetNum(el) {
+  document.getElementById('budgetRange').value = el.value;
+  syncBudget(document.getElementById('budgetRange'));
+}
+
+// ── ALERTS PANEL ──
+function toggleAlertsPanel() {
+  const p = document.getElementById('alertsPanel');
+  const isHidden = p.style.display === 'none';
+  p.style.display = isHidden ? 'block' : 'none';
+  if (isHidden) renderAlerts();
+}
+
+function renderAlerts() {
+  const alerts = JSON.parse(localStorage.getItem('lp_alerts') || '[]');
+  const list   = document.getElementById('alertsList');
+  if (!alerts.length) {
+    list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text2);font-size:14px;">No price alerts set.<br>Click 🔔 on any laptop card to set one.</div>';
+    return;
+  }
+  list.innerHTML = alerts.map((a, i) => `
+    <div style="display:flex;align-items:center;gap:14px;padding:12px;border-radius:10px;background:var(--bg3);margin-bottom:8px;">
+      <div style="font-size:22px;">🔔</div>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:600;line-height:1.4;">${a.title.substring(0,50)}...</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:3px;">
+          Current: <span style="color:var(--text);font-weight:700;">₹${a.currentPrice.toLocaleString('en-IN')}</span>
+          &nbsp;→&nbsp; Alert at: <span style="color:var(--green);font-weight:700;">₹${a.targetPrice.toLocaleString('en-IN')}</span>
+        </div>
+      </div>
+      <button onclick="removeAlert(${i})" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:18px;">✕</button>
+    </div>`).join('');
+}
+
+function removeAlert(idx) {
+  const alerts = JSON.parse(localStorage.getItem('lp_alerts') || '[]');
+  alerts.splice(idx, 1);
+  localStorage.setItem('lp_alerts', JSON.stringify(alerts));
+  window.priceAlerts = alerts;
+  renderAlerts();
+  updAlertsBadge();
+}
+
+function clearAllAlerts() {
+  if (!confirm('Clear all price alerts?')) return;
+  localStorage.removeItem('lp_alerts');
+  window.priceAlerts = [];
+  renderAlerts();
+  updAlertsBadge();
+  toast('', '🔕 All alerts cleared');
+}
+
+function updAlertsBadge() {
+  const alerts = JSON.parse(localStorage.getItem('lp_alerts') || '[]');
+  const badge  = document.getElementById('alertsBadge');
+  if (badge) {
+    badge.textContent = alerts.length;
+    badge.style.display = alerts.length > 0 ? 'inline' : 'none';
+  }
+}
+
+function showLoad() { document.getElementById('loadOv').classList.add('on'); ['ls1','ls2','ls3','ls4'].forEach((id,i) => { document.getElementById(id).className = 'lstep' + (i===0?' cur':''); }); }
+function hideLoad() { document.getElementById('loadOv').classList.remove('on'); }
+function stepLoad(n) { ['ls1','ls2','ls3','ls4'].forEach((id,i) => { document.getElementById(id).className = 'lstep' + (i<n-1?' done':i===n-1?' cur':''); }); }
+
+async function doSearch() {
+  const btn = document.getElementById('searchBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Searching...';
+  showLoad();
+
+  const gv = id => { const v = document.getElementById(id).value; return v === 'Any' ? '' : v; };
+  const payload = {
+    brand       : gv('brand'),
+    generation  : gv('generation'),
+    processor   : gv('cpuModel'),
+    ram         : gv('ramSize'),
+    storageType : gv('storageType'),
+    storage     : gv('storageSize').split(' ')[0],
+    gpu         : gv('gpuModel'),
+    display     : document.getElementById('displaySize').value,
+    budget      : document.getElementById('budgetNum').value || 0
+  };
+
+  try {
+    stepLoad(2);
+    const res  = await fetch('/predict', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    stepLoad(3);
+    const data = await res.json();
+    stepLoad(4);
+
+    allResults = data.results || [];
+    window._cards = allResults;
+
+    document.getElementById('resultsWrap').style.display = 'block';
+    document.getElementById('resCount').textContent = allResults.length + ' laptops found';
+    renderGrid(allResults, 'resultGrid');
+
+    if (data.ml_summary) { document.getElementById('mlBox').classList.add('show'); document.getElementById('mlTxt').textContent = data.ml_summary; }
+    if (allResults.length) { document.getElementById('chartCard').classList.add('show'); drawChart(allResults); }
+    if (data.recommended && data.recommended.length) {
+      window._recCards = data.recommended;
+      document.getElementById('recWrap').style.display = 'block';
+      renderRecGrid(data.recommended);
+    } else if (allResults.length >= 2) {
+      // Fallback: client-side recommend from results if backend gives nothing
+      window._recCards = getClientRecs(allResults);
+      if (window._recCards.length) {
+        document.getElementById('recWrap').style.display = 'block';
+        renderRecGrid(window._recCards);
+      }
+    }
+
+    toast('ok', '✅ Found ' + allResults.length + ' laptops!');
+  } catch(e) {
+    toast('err', '❌ Server error. Is Flask running on port 8000?');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa fa-search"></i> Search & Predict with AI';
+    hideLoad();
+  }
+}
+
+function renderGrid(items, gId) {
+  const g = document.getElementById(gId);
+  if (!items.length) { g.innerHTML = '<p style="color:var(--text3);grid-column:1/-1;text-align:center;padding:40px;">No results found.</p>'; return; }
+  g.innerHTML = items.map((it, i) => mkCard(it, i, 'search')).join('');
+}
+
+// ── AI RECOMMENDATION GRID ──────────────────────────────────────────
+function renderRecGrid(items) {
+  const g = document.getElementById('recGrid');
+  if (!items || !items.length) { g.innerHTML = ''; return; }
+  g.innerHTML = items.map((it, i) => mkRecCard(it, i)).join('');
+}
+
+function mkRecCard(it, idx) {
+  const pv    = it.price_value || 0;
+  const pstr  = it.price || (pv ? '₹' + pv.toLocaleString('en-IN') : 'N/A');
+  const pred  = it.predicted_price;
+  const img   = it.image  || '';
+  const title = it.title  || 'Laptop';
+  const link  = it.link   || '#';
+  const plat  = it.platform || '';
+  const rat   = it.rating || '';
+  const deal  = it.deal;
+  const score = it.ml_score || it.rec_score || null;
+  const reason= it.rec_reason || '';
+
+  // Why recommended
+  const reasonTags = it.rec_tags || [];
+  const tagHtml = reasonTags.map(t => `<span style="
+    background:rgba(61,142,248,.12);border:1px solid rgba(61,142,248,.2);
+    color:var(--accent2);font-size:10px;font-weight:700;padding:2px 7px;
+    border-radius:5px;white-space:nowrap;
+  ">${t}</span>`).join('');
+
+  // Deal badge
+  let dealBadge = '';
+  if (deal) {
+    const lbl = deal.label || '';
+    const col = lbl.includes('Hot')  ? 'var(--green)' :
+                lbl.includes('Good') ? 'var(--accent)' :
+                lbl.includes('Over') ? 'var(--red)' : 'var(--text2)';
+    dealBadge = `<span style="font-size:11px;font-weight:700;color:${col};">${lbl}</span>`;
+  }
+
+  // ML score ring
+  const scoreHtml = score ? `
+    <div style="
+      width:44px;height:44px;border-radius:50%;
+      background:conic-gradient(var(--accent2) ${score}%, var(--border) 0);
+      display:flex;align-items:center;justify-content:center;
+      flex-shrink:0;
+    ">
+      <div style="
+        width:34px;height:34px;border-radius:50%;background:var(--card);
+        display:flex;align-items:center;justify-content:center;
+        font-size:10px;font-weight:800;color:var(--accent2);
+      ">${Math.round(score)}</div>
+    </div>` : '';
+
+  // Wishlist state
+  const wl    = JSON.parse(localStorage.getItem('lp_wish') || '[]');
+  const saved = wl.some(w => w.link === link);
+
+  return `
+  <div style="
+    background:var(--card);border:1px solid var(--border);border-radius:16px;
+    overflow:hidden;display:flex;flex-direction:column;transition:all .25s;
+    position:relative;
+  " onmouseover="this.style.borderColor='var(--accent2)';this.style.transform='translateY(-4px)'"
+     onmouseout="this.style.borderColor='var(--border)';this.style.transform='none'">
+
+    <!-- AI Pick ribbon -->
+    <div style="
+      background:linear-gradient(90deg,rgba(61,142,248,.15),rgba(168,85,247,.1));
+      border-bottom:1px solid rgba(61,142,248,.2);
+      padding:6px 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+    ">
+      <span style="font-size:11px;font-weight:800;color:var(--accent2);">🤖 AI Pick</span>
+      ${tagHtml}
+      ${reason ? `<span style="font-size:10px;color:var(--text2);margin-left:auto;">${reason}</span>` : ''}
+    </div>
+
+    <div style="display:flex;gap:0;flex:1;">
+      <!-- Image -->
+      <div style="
+        width:110px;flex-shrink:0;background:var(--bg2);
+        display:flex;align-items:center;justify-content:center;padding:12px;
+      ">
+        ${img
+          ? `<img src="${img}" alt="${title}" style="width:100%;max-height:80px;object-fit:contain;" onerror="this.style.display='none'">`
+          : `<i class="fa fa-laptop" style="font-size:36px;color:var(--border2);"></i>`}
+      </div>
+
+      <!-- Info -->
+      <div style="flex:1;padding:12px;display:flex;flex-direction:column;gap:6px;min-width:0;">
+        <div style="font-size:13px;font-weight:700;line-height:1.4;
+          display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
+          ${title}
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span style="font-size:18px;font-weight:800;color:var(--text);">${pstr}</span>
+          ${dealBadge}
+          ${rat ? `<span style="font-size:12px;color:var(--accent);">⭐ ${rat}</span>` : ''}
+        </div>
+        ${pred && pred > 0 ? `
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="font-size:10px;color:var(--text2);">ML Fair:</span>
+            <span style="font-size:12px;font-weight:700;color:var(--accent);">₹${pred.toLocaleString('en-IN')}</span>
+            <span style="font-size:11px;font-weight:700;color:${pv <= pred ? 'var(--green)' : 'var(--red)'};">
+              (${pv <= pred ? 'Below' : 'Above'} market)
+            </span>
+          </div>` : ''}
+        <div style="display:flex;gap:8px;margin-top:auto;">
+          <a href="${link}" target="_blank" rel="noopener" style="
+            flex:1;text-align:center;padding:8px;border-radius:8px;
+            background:var(--accent2);color:#fff;text-decoration:none;
+            font-size:12px;font-weight:700;transition:.2s;
+          " onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+            View Deal <i class="fa fa-external-link-alt"></i>
+          </a>
+          <button onclick="
+            const wl=JSON.parse(localStorage.getItem('lp_wish')||'[]');
+            const pos=wl.findIndex(w=>w.link==='${link.replace(/'/g,"\'")}');
+            if(pos>=0){wl.splice(pos,1);this.textContent='🤍';}
+            else{wl.push(${JSON.stringify(it).replace(/</g,'\u003c')});this.textContent='❤️';}
+            localStorage.setItem('lp_wish',JSON.stringify(wl));updWBadge();
+          " style="
+            width:36px;height:36px;border-radius:8px;border:1px solid var(--border);
+            background:var(--bg2);font-size:15px;cursor:pointer;flex-shrink:0;
+          " title="Save to wishlist">${saved ? '❤️' : '🤍'}</button>
+        </div>
+      </div>
+
+      <!-- Score ring -->
+      <div style="padding:12px 12px 12px 0;display:flex;align-items:center;">${scoreHtml}</div>
+    </div>
+  </div>`;
+}
+
+// ── CLIENT-SIDE FALLBACK RECOMMENDER ───────────────────────────────
+function getClientRecs(results) {
+  if (!results || results.length < 2) return [];
+  const budget = parseInt(document.getElementById('budgetNum')?.value || 0);
+
+  const scored = results.map(it => {
+    let s = 0;
+    const pv = it.price_value || 0;
+
+    // Hot deal = big bonus
+    if (it.deal) {
+      if (it.deal.label.includes('Hot'))  s += 40;
+      if (it.deal.label.includes('Good')) s += 20;
+      if (it.deal.label.includes('Over')) s -= 10;
+    }
+    // Below ML price = bonus
+    if (it.predicted_price && pv && pv < it.predicted_price) s += 25;
+    // Rating bonus
+    const rat = parseFloat(it.rating) || 0;
+    if (rat >= 4.5) s += 20;
+    else if (rat >= 4.0) s += 10;
+    // Budget fit
+    if (budget > 0 && pv > 0 && pv <= budget) s += 15;
+    // More RAM = better
+    const ram = parseInt(it.ram) || 0;
+    if (ram >= 32) s += 10;
+    else if (ram >= 16) s += 5;
+
+    // Build rec tags
+    const tags = [];
+    if (it.deal && it.deal.label.includes('Hot'))  tags.push('🔥 Hot Deal');
+    if (it.predicted_price && pv && pv < it.predicted_price) tags.push('💰 Below ML Price');
+    if (rat >= 4.5) tags.push('⭐ Top Rated');
+    if (ram >= 32)  tags.push('🧠 High RAM');
+    if (budget > 0 && pv <= budget) tags.push('✅ In Budget');
+
+    return { ...it, rec_score: Math.max(0, s), rec_tags: tags };
+  });
+
+  return scored
+    .filter(it => it.rec_score > 0)
+    .sort((a, b) => b.rec_score - a.rec_score)
+    .slice(0, 4);
+}
+
+function filterCards(type, el) {
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active')); el.classList.add('active');
+  let f = [...allResults];
+  if (type === 'hot')           f = f.filter(r => r.deal && r.deal.label.includes('Hot'));
+  if (type === 'budget')        f = f.filter(r => (r.price_value||0) < 60000);
+  if (type === 'under40')       f = f.filter(r => (r.price_value||0) < 40000);
+  if (type === 'premium')       f = f.filter(r => (r.price_value||0) >= 100000);
+  if (type === 'predicted_good')f = f.filter(r => r.predicted_price && r.price_value && r.price_value < r.predicted_price);
+  renderGrid(f, 'resultGrid');
+  document.getElementById('resCount').textContent = f.length + ' shown';
+}
+
+function sortCards() {
+  const v = document.getElementById('sortSel').value;
+  let s = [...allResults];
+  if (v === 'asc')  s.sort((a,b) => (a.price_value||0) - (b.price_value||0));
+  if (v === 'desc') s.sort((a,b) => (b.price_value||0) - (a.price_value||0));
+  if (v === 'deal') s.sort((a,b) => { const r = l => l.deal ? l.deal.label.includes('Hot') ? 0 : l.deal.label.includes('Good') ? 1 : 2 : 3; return r(a) - r(b); });
+  renderGrid(s, 'resultGrid');
+}
+
+function toggleCmp(e, idx) {
+  e.stopPropagation();
+  const item = allResults[idx];
+  if (!item) return;
+  const ex = compareList.findIndex(c => c.link === item.link);
+  if (ex >= 0) compareList.splice(ex, 1);
+  else {
+    if (compareList.length >= 3) { toast('err', '⚠️ Max 3 laptops'); e.target.checked = false; return; }
+    compareList.push(item);
+  }
+  updCmpBar();
+}
+
+function updCmpBar() {
+  const bar = document.getElementById('cmpBar');
+  const slots = document.getElementById('cmpSlots');
+  if (!compareList.length) { bar.classList.remove('show'); return; }
+  bar.classList.add('show');
+  let html = compareList.map((c,i) => '<div class="cmp-slot filled">' + c.title.substring(0,26) + '...<button onclick="rmCmp(' + i + ')" style="background:none;border:none;color:var(--red);cursor:pointer;margin-left:6px;">✕</button></div>').join('');
+  for (let i = compareList.length; i < 3; i++) html += '<div class="cmp-slot">Slot ' + (i+1) + '</div>';
+  slots.innerHTML = html;
+}
+
+function rmCmp(idx) { compareList.splice(idx, 1); updCmpBar(); }
+function clearCmp() { compareList = []; updCmpBar(); document.querySelectorAll('.card-cmp').forEach(c => c.checked = false); }
+
+function openCmpModal() {
+  if (compareList.length < 2) { toast('err', '⚠️ Select at least 2 laptops to compare'); return; }
+
+  const prices  = compareList.map(c => c.price_value || 0);
+  const minP    = Math.min(...prices.filter(p => p > 0));
+  const maxP    = Math.max(...prices);
+  const ratings = compareList.map(c => parseFloat(c.rating) || 0);
+  const maxRat  = Math.max(...ratings);
+
+  // Score each laptop (lower price = better, higher rating = better, hot deal = bonus)
+  const scores = compareList.map(c => {
+    let s = 50;
+    if (c.price_value && maxP > 0) s += Math.round((1 - c.price_value / maxP) * 30);
+    const rat = parseFloat(c.rating) || 0;
+    if (rat > 0) s += Math.round((rat / 5) * 15);
+    if (c.deal) {
+      if (c.deal.label.includes('Hot'))  s += 10;
+      if (c.deal.label.includes('Good')) s += 5;
+      if (c.deal.label.includes('Over')) s -= 8;
+    }
+    if (c.predicted_price && c.price_value && c.price_value < c.predicted_price) s += 8;
+    return Math.min(100, Math.max(0, s));
+  });
+  const winner = scores.indexOf(Math.max(...scores));
+
+  const COLS = ['#3d8ef8','#f5a623','#00e5a0'];
+
+  // Header cards
+  let headerHtml = compareList.map((c, i) => `
+    <div class="cmp-hd-card ${i === winner ? 'cmp-winner' : ''}" style="border-color:${i===winner?'var(--green)':'var(--border)'}">
+      ${i === winner ? '<div class="cmp-winner-badge">🏆 Best Pick</div>' : ''}
+      ${c.image ? `<img src="${c.image}" alt="${c.title}" style="width:100%;max-height:90px;object-fit:contain;margin-bottom:10px;" onerror="this.style.display='none'">` : ''}
+      <div style="font-size:12px;font-weight:700;line-height:1.4;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${c.title}</div>
+      <div style="font-size:11px;color:var(--text2);">${c.platform||''}</div>
+      <div style="font-size:20px;font-weight:800;color:${COLS[i]};margin-top:6px;">₹${(c.price_value||0).toLocaleString('en-IN')}</div>
+      ${c.deal ? `<div style="font-size:10px;font-weight:700;margin-top:4px;color:${c.deal.label.includes('Hot')?'var(--green)':c.deal.label.includes('Over')?'var(--red)':'var(--accent)'};">${c.deal.label}</div>` : ''}
+    </div>`).join('');
+
+  // Score bars
+  let scoresHtml = compareList.map((c, i) => `
+    <div style="margin-bottom:6px;">
+      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;">
+        <span style="color:${COLS[i]};font-weight:700;">${c.title.substring(0,22)}…</span>
+        <span style="font-weight:800;color:${i===winner?'var(--green)':'var(--text2)'};">${scores[i]}/100</span>
+      </div>
+      <div style="height:8px;background:var(--border);border-radius:4px;overflow:hidden;">
+        <div style="height:100%;width:${scores[i]}%;background:${i===winner?'var(--green)':COLS[i]};border-radius:4px;transition:width 1s ease;"></div>
+      </div>
+    </div>`).join('');
+
+  // Spec rows
+  const specRows = [
+    { label:'💰 Price',        vals: compareList.map(c => '₹'+(c.price_value||0).toLocaleString('en-IN')),   best: i => prices[i] === minP },
+    { label:'🤖 ML Fair Price',vals: compareList.map(c => c.predicted_price ? '₹'+c.predicted_price.toLocaleString('en-IN') : '—'), best: ()=>false },
+    { label:'🧠 RAM',          vals: compareList.map(c => c.ram ? c.ram+'GB '+(c.ram_type||'') : '—'),        best: i => parseInt(compareList[i].ram||0) === Math.max(...compareList.map(x=>parseInt(x.ram||0))) },
+    { label:'💾 Storage',      vals: compareList.map(c => c.storage ? c.storage+'GB '+(c.storage_type||'') : '—'), best: i => parseInt(compareList[i].storage||0) === Math.max(...compareList.map(x=>parseInt(x.storage||0))) },
+    { label:'⭐ Rating',       vals: compareList.map(c => c.rating ? c.rating+' ★' : '—'),                   best: i => ratings[i] === maxRat && maxRat > 0 },
+    { label:'🏷️ Platform',    vals: compareList.map(c => c.platform||'—'),                                   best: ()=>false },
+    { label:'🎯 Deal Status',  vals: compareList.map(c => c.deal ? c.deal.label : 'Fair Price'),              best: i => !!(compareList[i].deal && compareList[i].deal.label.includes('Hot')) },
+  ];
+
+  let tableHtml = specRows.map(row => `
+    <div class="cmp-spec-row">
+      <div class="cmp-spec-lbl">${row.label}</div>
+      ${row.vals.map((v, i) => `
+        <div class="cmp-spec-val ${row.best(i) ? 'cmp-best-val' : ''}" style="border-top:2px solid ${COLS[i]}20;">
+          ${row.best(i) ? '<span style="color:var(--green);font-size:10px;font-weight:700;display:block;margin-bottom:2px;">✓ Best</span>' : ''}
+          ${v}
+        </div>`).join('')}
+    </div>`).join('');
+
+  document.getElementById('cmpTableWrap').innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(${compareList.length},1fr);gap:10px;margin-bottom:20px;">
+      ${headerHtml}
+    </div>
+    <div style="background:var(--bg3);border-radius:12px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;">📊 AI Score</div>
+      ${scoresHtml}
+    </div>
+    <div class="cmp-spec-grid" style="grid-template-columns:140px ${compareList.map(()=>'1fr').join(' ')};">
+      ${tableHtml}
+    </div>`;
+
+  document.getElementById('cmpModal').classList.add('open');
+}
+
+function drawChart(items) {
+  const ctx = document.getElementById('priceChart').getContext('2d');
+  if (priceChart) priceChart.destroy();
+  const top = items.slice(0, 10);
+  const dk  = document.documentElement.getAttribute('data-theme') === 'dark';
+  const tc  = dk ? '#8fa3c0' : '#4a5878';
+  const gc  = dk ? '#1e2d45' : '#d0daea';
+  priceChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: top.map(r => r.title.substring(0, 16) + '...'),
+      datasets: [
+        { label: 'Actual (₹)',       data: top.map(r => r.price_value||0),      backgroundColor: 'rgba(245,166,35,.75)', borderColor: '#f5a623', borderWidth: 1 },
+        { label: 'ML Predicted (₹)', data: top.map(r => r.predicted_price||0),  backgroundColor: 'rgba(61,142,248,.55)', borderColor: '#3d8ef8', borderWidth: 1 }
+      ]
+    },
+    options: { responsive: true, plugins: { legend: { labels: { color: tc } } }, scales: { x: { ticks: { color: tc, maxRotation: 30 }, grid: { color: gc } }, y: { ticks: { color: tc, callback: v => '₹' + v.toLocaleString('en-IN') }, grid: { color: gc } } } }
+  });
+}
+
+// ── EXPORT TO CSV ──
+function exportCSV() {
+  if (!allResults.length) { toast('err', '⚠️ No results to export'); return; }
+  const headers = ['Title','Price (₹)','ML Predicted (₹)','Deal','Platform','RAM','Storage','Rating','Link'];
+  const rows = allResults.map(r => [
+    '"' + (r.title||'').replace(/"/g,'""') + '"',
+    r.price_value||0,
+    r.predicted_price||'',
+    r.deal ? '"'+r.deal.label+'"' : '',
+    '"' + (r.platform||'') + '"',
+    (r.ram||'')+'GB',
+    (r.storage||'')+'GB',
+    r.rating||'',
+    '"' + (r.link||'') + '"'
+  ].join(','));
+  const csv  = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url; a.download = 'laptops_' + Date.now() + '.csv';
+  a.click(); URL.revokeObjectURL(url);
+  toast('ok', '✅ Exported ' + allResults.length + ' results to CSV!');
+}
+
+// ── SHARE RESULTS ──
+function shareResults() {
+  const url = window.location.href;
+  const text = '🔍 Found ' + allResults.length + ' laptops via LaptopPredict AI!';
+  if (navigator.share) {
+    navigator.share({ title: 'LaptopPredict Results', text, url }).catch(()=>{});
+  } else {
+    navigator.clipboard.writeText(url).then(() => toast('ok', '✅ Link copied to clipboard!'));
+  }
+}
+
+// ── PRICE ALERT (localStorage based) ──
+window.priceAlerts = JSON.parse(localStorage.getItem('lp_alerts') || '[]');
+function setPriceAlert(idx) {
+  const item = allResults[idx];
+  if (!item || !item.price_value) { toast('err', 'No price data for alert'); return; }
+  const target = prompt('Set alert when price drops below (₹):', Math.round(item.price_value * 0.9).toString());
+  if (!target || isNaN(target)) return;
+  const alert = { title: item.title, link: item.link, currentPrice: item.price_value, targetPrice: parseInt(target), setAt: Date.now() };
+  window.priceAlerts.push(alert);
+  localStorage.setItem('lp_alerts', JSON.stringify(window.priceAlerts));
+  toast('ok', '🔔 Alert set for ₹' + parseInt(target).toLocaleString('en-IN'));
+}
+
+window.onload = () => {
+  initTheme();
+  updWBadge();
+  onCpuBrand(); onGpuBrand(); onRamType(); onStorageType();
+  syncBudget(document.getElementById('budgetRange'));
+  window.priceAlerts = JSON.parse(localStorage.getItem('lp_alerts') || '[]');
+  updAlertsBadge();
+};
+</script>
+</body>
+</html>
