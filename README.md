@@ -1,8 +1,9 @@
-# 💻 LaptopPredict v2.0
+# Laptop-Price-Intelligence
+
 
 AI-powered laptop price intelligence platform with login, ML predictions, and real-time price comparison.
 
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
 # 1. Install dependencies
@@ -17,20 +18,20 @@ python app.py
 
 Open → **http://localhost:8000**
 
-## 🌟 Features
+##  Features
 
 | Feature | Description |
 |---------|-------------|
-| 🏠 Home Page | Landing page with 3D particle animations |
-| 🔐 Login/Register | Full auth with session management |
-| 🔄 Switch Account | Manage multiple accounts locally |
-| 🔍 Search & Predict | Real-time prices + ML price prediction |
-| 🛠️ Build & Estimate | Configure specs and estimate price |
-| 📜 History | Past searches stored in SQLite |
-| ❤️ Wishlist | Save laptops you're watching |
-| ⚙️ CPU Compare | Side-by-side CPU benchmark comparison |
+|  Home Page | Landing page with 3D particle animations |
+|  Login/Register | Full auth with session management |
+|  Switch Account | Manage multiple accounts locally |
+|  Search & Predict | Real-time prices + ML price prediction |
+|  Build & Estimate | Configure specs and estimate price |
+|  History | Past searches stored in SQLite |
+|  Wishlist | Save laptops you're watching |
+|  CPU Compare | Side-by-side CPU benchmark comparison |
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 LP2/
@@ -57,7 +58,7 @@ LP2/
     └── _shared.js          # Shared JS (auth, theme, nav)
 ```
 
-## 🔐 Auth Endpoints
+## Auth Endpoints
 
 | Method | URL | Description |
 |--------|-----|-------------|
@@ -66,7 +67,7 @@ LP2/
 | POST | `/auth/logout` | Logout (invalidates session) |
 | GET | `/auth/me` | Get current user info |
 
-## 🔮 Coming Soon
+## Coming Soon
 
 - [ ] Mobile & accessories section
 - [ ] Gaming laptops section
@@ -74,7 +75,7 @@ LP2/
 - [ ] User profile page
 - [ ] Compare saved laptops
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Backend**: Flask (Python)
 - **Database**: SQLite
